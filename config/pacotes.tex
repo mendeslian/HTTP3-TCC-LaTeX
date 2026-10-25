@@ -1,0 +1,64 @@
+\usepackage[a4paper,left=3cm,right=2.54cm,top=3cm,bottom=1.7cm]{geometry}
+\usepackage{fontspec}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{chngcntr}
+\usepackage{fancyhdr}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black}
+
+\setmainfont{Times New Roman}
+\urlstyle{same}
+\setsansfont{Arial}
+\setmonofont{Consolas}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+
+\renewcommand{\chaptername}{}
+\titleformat{\chapter}[hang]{\bfseries\MakeUppercase}{\thechapter.}{0.5em}{}
+\titlespacing*{\chapter}{0pt}{12pt}{18pt}
+\titleformat{\section}{\bfseries}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\bfseries}{\thesubsection}{0.5em}{}
+
+\captionsetup{font=small,labelfont=bf,justification=centering,labelsep=endash,skip=6pt}
+\captionsetup[table]{position=top}
+
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchappagefont}{\bfseries}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsubsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftfigpresnum}{Figura~}
+\renewcommand{\cfttabpresnum}{Tabela~}
+\renewcommand{\cftfigaftersnum}{~--~}
+\renewcommand{\cfttabaftersnum}{~--~}
+\setlength{\cftfignumwidth}{4.5em}
+\setlength{\cfttabnumwidth}{4.5em}
+\setlength{\cftfigindent}{0pt}
+\setlength{\cfttabindent}{0pt}
+
+\setlength{\headheight}{14.5pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyhead[R]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+\pagestyle{plain}
+
+\newcommand{\fonte}[1]{\par\smallskip{\small #1}\par}

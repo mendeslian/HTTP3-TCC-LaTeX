@@ -1,0 +1,194 @@
+﻿\chapter{REVISÃO SISTEMÁTICA DE LITERATURA}
+
+Este capítulo apresenta o protocolo e os resultados da revisão de literatura (RSL) sobre HTTP/3, QUIC, desempenho e implementação em APIs REST e serviços web. A revisão busca identificar e sintetizar as evidências disponíveis para apoiar as questões de pesquisa definidas no Capítulo 1.
+
+\section{Protocolo de pesquisa}
+
+Esta revisão de literatura foi conduzida com base em diretrizes para revisões sistemáticas em Engenharia de Software descritas por Kitchenham e Charters (2007). O objetivo é identificar, selecionar e sintetizar estudos sobre HTTP/3, QUIC, desempenho e implementação em APIs ou serviços web que ajudem a responder às questões de pesquisa.
+
+A revisão seguiu as etapas de: (i) definição da questão de revisão e dos critérios de busca; (ii) execução da busca nas bases selecionadas; (iii) remoção de duplicatas; (iv) triagem por título e resumo; (v) leitura integral dos estudos potencialmente elegíveis; (vi) extração de dados e síntese temática dos estudos incluídos.
+
+A questão norteadora da revisão foi ``\textit{Quais evidências a literatura apresenta sobre desempenho, implementação e migração de HTTP/3 e QUIC em APIs REST e serviços web, e quais lacunas permanecem quanto à adoção em ambientes Node.js?}\textit{''}
+
+A \textit{string} de busca foi construída a partir de três blocos temáticos, combinados com o operador lógico AND:
+
+\begin{enumerate}[label=\alph*)]
+\item protocolo: ("HTTP/3"OR "HTTP 3"OR HTTP3 OR QUIC);
+\item contexto de API: ("REST"OR "RESTful"OR "web API"OR "Application Programming Interface");
+\item aspecto investigado: (performance OR latency OR migration OR implementation OR "Node.js"OR "Node js").
+\end{enumerate}
+
+A string completa utilizada como referência foi:
+
+("HTTP/3"OR "HTTP 3"OR HTTP3 OR QUIC) AND ("REST"OR "RESTful"OR"web API"OR "Application Programming Interface") AND (performance OR latency OR migration OR implementation OR "Node.js"OR "Node js")
+
+Foram aplicados filtros de publicação entre 2018 e 2026, período que abrange a consolidação do QUIC e do HTTP/3 como padrões IETF. A Tabela 2 apresenta a adaptação da \textit{string} conforme a sintaxe exigida por cada base de dados. As buscas foram executadas em 29 de junho de 2026.
+
+\begin{table}[htbp]
+\centering
+\caption{Adaptação da string de busca por base de dados}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{32mm}>{\raggedright\arraybackslash}p{112mm}@{}}
+\hline
+\textbf{Base} & \textbf{String adaptada (2018--2026)} \\
+\hline
+IEEE Xplore & ("HTTP/3"OR "HTTP 3"OR HTTP3 OR QUIC) AND ("REST"OR "RESTful"OR "web API") AND (performance OR latency OR migration OR implementation OR "Node.js") \\
+ACM Digital Library & AllField: ("HTTP/3"OR QUIC) AND (REST OR "web API") AND (performance OR latency OR migration OR implementation) \\
+Scopus & TITLE-ABS-KEY(|("HTTP/3"OR HTTP3 OR QUIC) AND ("REST"OR "web API") AND (performance OR latency OR migration OR implementation)) AND PUBYEAR > 2017 AND PUBYEAR < 2027 \\
+Springer Link & ("HTTP/3"OR "HTTP 3"OR HTTP3 OR QUIC) AND (REST OR RESTful OR "web API") AND (performance OR latency OR migration OR implementation) \\
+Google Scholar & "HTTP/3"OR QUIC REST API performance latency migration Node.js (2018..2026) \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor}
+\end{table}
+
+Foram consultadas cinco bases de dados, selecionadas por cobrirem periódicos e conferências das áreas de redes, sistemas distribuídos e Engenharia de Software:
+
+\begin{enumerate}[label=\alph*)]
+\item IEEE Xplore - conferências e periódicos IEEE em redes e sistemas (ex.: CoNTESA, ICMI);
+\item ACM Digital Library - publicações ACM em sistemas distribuídos, web e protocolos;
+\item Scopus - indexação ampla de periódicos e conferências internacionais;
+\item Springer Link - artigos em ciência da computação e redes;
+\item Google Scholar - busca complementar, com deduplicação rigorosa em relação às demais bases.
+\end{enumerate}
+
+Os critérios de seleção foram definidos antes da triagem dos estudos, conforme descrito a seguir.
+
+Critérios de inclusão:
+\begin{enumerate}[label=\alph*)]
+\item artigos completos, extended abstracts de conferências ou normas técnicas (RFCs) relevan-tes, com revisão por pares ou publicação em organismos de padronização;
+\item estudos que abordem HTTP/3, QUIC, desempenho, latência, migração ou implementação em APIs, serviços web ou arquiteturas de backend;
+\item publicações em inglês ou português;
+\item período de publicação entre 2018 e 2026;
+\item acesso ao texto completo ou resumo suficiente para avaliação de elegibilidade.
+\end{enumerate}
+
+Critérios de exclusão:
+\begin{enumerate}[label=\alph*)]
+\item duplicatas identificadas entre bases (mesmo DOI, título ou autores);
+\item editoriais, keynotes ou trabalhos sem contribuição técnica verificável;
+\item estudos focados exclusivamente em frontend, streaming de mídia ou domínios sem relação com APIs REST/backend;
+\item pré-prints sem revisão por pares, exceto quando citados como complemento a versões publicadas.
+\end{enumerate}
+
+O processo de seleção dos estudos seguiu um funil em cinco etapas:
+
+\begin{enumerate}[label=\alph*)]
+\item identificação - registros retornados pelas buscas em cada base (Tabela 4);
+\item deduplicação - remoção de 515 registros duplicados, principalmente entre Scopus, Google Scholar e Springer Link, resultando em 284 estudos únicos;
+\item triagem - leitura de título e resumo, com exclusão de 260 estudos por não atenderem aos critérios de inclusão (foco em domínios distintos, ausência de relação com HTTP/3/QUIC ou APIs);
+\item elegibilidade - leitura integral de 24 estudos, dos quais 13 foram excluídos por não apresentarem dados comparativos, implementação ou análise aplicável ao escopo deste TCC;
+\item inclusão - 11 documentos selecionados para síntese: duas normas técnicas (RFC 9000 e RFC 9114) e nove estudos empíricos ou de revisão com dados comparativos (Tabelas 5 e 6).
+\end{enumerate}
+
+A Tabela 3 resume o quantitativo de estudos em cada etapa do processo de seleção.
+
+
+\begin{table}[htbp]
+\centering
+\caption{Quantitativo de estudos em cada etapa da revisão}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{100mm}>{\raggedright\arraybackslash}p{28mm}@{}} \hline
+\textbf{Etapa} & \textbf{Registros} \\
+\hline
+Identificação (total bruto) & 799 \\
+Após deduplicação & 284 \\
+Após triagem (título e resumo) & 24 \\
+Após elegibilidade (leitura integral) & 11 \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor (buscas realizadas em 29/06/2026). Nota: os 11 documentos incluem 2 normas (RFC) e 9 estudos empíricos ou de revisão sintetizados nos eixos temáticos.}
+\end{table}
+
+A Tabela 4 apresenta a quantidade de registros identificados em cada base de dados consultada, antes da deduplicação. O total bruto de 799 registros reflete sobreposição entre indexadores; após remoção de duplicatas, permaneceram 284 estudos únicos para triagem.
+
+
+\begin{table}[htbp]
+\centering
+\caption{Quantidade de registros identificados por base de dados}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{88mm}>{\raggedright\arraybackslash}p{32mm}>{\raggedright\arraybackslash}p{24mm}@{}} \hline
+\textbf{Base de dados} & \textbf{Registros encontrados} & \textbf{Estudos incluídos} \\
+\hline
+IEEE Xplore & 41 & 4 \\
+ACM Digital Library & 27 & 2 \\
+Scopus & 93 & 3 \\
+Springer Link & 470 & 1 \\
+Google Scholar & 168 & 1 \\
+\textbf{Total (antes da deduplicação)} & \textbf{799} & --- \\
+\textbf{Estudos únicos (após deduplicação)} & \textbf{284} & --- \\
+\textbf{Documentos na síntese (2 RFC + 9 empíricos)} & --- & \textbf{11} \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor (buscas realizadas em 29/06/2026). Nota: a coluna ``Estudos incluídos'' indica em qual base cada um dos 11 documentos finais foi originalmente identificado.}
+\end{table}
+
+Os quantitativos por base foram obtidos pelas interfaces de busca avançada de cada plataforma em 29/06/2026, com as strings da Tabela 2. As normas RFC 9000 e RFC 9114 não integram esses totais; foram incluídas manualmente por fundamentarem semanticamente QUIC e HTTP/3 (Tabela 5).
+
+\section{Resultados da Revisão da Literatura}
+
+Esta seção apresenta os resultados da revisão, organizados em base normativa e síntese empírica. As Tabelas 5 e 6 resumem os documentos incluídos após a elegibilidade.
+
+\begin{table}[htbp]
+\centering
+\caption{Base normativa incluída na revisão (não contabilizada como evidência empírica)}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{52mm}>{\raggedright\arraybackslash}p{14mm}>{\raggedright\arraybackslash}p{78mm}@{}}
+\hline
+\textbf{Documento} & \textbf{Ano} & \textbf{Contribuição} \\
+\hline
+(QUIC Working Group -- IETF, 2021) & 2021 & RFC 9000 --- especificação QUIC (UDP, TLS 1.3, \textit{streams}) \\
+(IETF, 2022) & 2022 & RFC 9114 --- mapeamento HTTP sobre QUIC \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Estudos empíricos e de revisão incluídos na síntese temática (n = 9)}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{48mm}>{\raggedright\arraybackslash}p{12mm}>{\raggedright\arraybackslash}p{18mm}>{\raggedright\arraybackslash}p{66mm}@{}} \hline
+\textbf{Estudo} & \textbf{Ano} & \textbf{Tipo} & \textbf{Contribuição principal} \\
+\hline
+(PERNA et al., 2022) & 2022 & Medição & Adoção e desempenho do HTTP/3 em larga escala na web \\
+(TRIPATHI; MIRAZ; JOSHI, 2023) & 2023 & Medição & Latência HTTP/3 vs HTTP/1.1 em APIs RESTful \\
+(CHATZOGLOU et al., 2023) & 2023 & Análise & Segurança do HTTP/3 comparado ao HTTP/2 \\
+(KOCH; FALOWO; ELROD, 2024) & 2024 & Revisão & Estado da implementação e adoção do HTTP/3 \\
+(ZHANG et al., 2025) & 2025 & Revisão & Desempenho, limitações e melhorias do HTTP/3 \\
+(YU; BENSON, 2021) & 2021 & Medição & QUIC/HTTP/3 em produção (grandes provedores) \\
+(TREVISAN et al., 2021) & 2021 & Medição & Adoção e desempenho do HTTP/3 em escala \\
+(MUÑOZ et al., 2025) & 2025 & Medição & HTTP/3 vs HTTP/2 com \textit{proxy} \\
+(ZAHRA; ARDIANSYAH, 2026) & 2026 & Medição & Latência e \textit{throughput} em APIs REST (H/3 vs H/2) \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor. Tipo indica natureza predominante do documento (medição experimental, revisão ou análise comparativa).}
+\end{table}
+
+\subsection{Desempenho e latência}
+
+No eixo de desempenho, predominam estudos de medição (TRIPATHI; MIRAZ; JOSHI, 2023; ZAHRA; ARDIANSYAH, 2026; YU; BENSON, 2021; PERNA et al., 2022) e revisões que sintetizam limitações (ZHANG et al., 2025). Tripathi, Miraz e Joshi (2023) compararam latência de APIs RESTful em HTTP/3 e HTTP/1.1, observando ganhos de eficiência de comunicação. Zhang et al. (2025) reúnem mecanismos de melhoria e restrições de desempenho. Zahra e Ardiansyah (2026) evidenciam a dependência de contexto: sob rede severamente degradada, relatam redução de latência de até 31,2\% com HTTP/3 frente ao HTTP/2, em especial em operações GET com alta concorrência, enquanto em condições ideais, com alta concorrência e payload médio, o HTTP/2 pode superar o HTTP/3 --- resultado que orienta a matriz experimental com netem e variação de payload neste TCC.
+
+\subsection{Adoção e implementação}
+
+Estudos de medição em larga escala (PERNA et al., 2022) e a revisão de Koch, Falowo e Elrod (2024) indicam adoção crescente do HTTP/3, com ganhos práticos que variam conforme as condições de rede e a infraestrutura (PERNA et al., 2022). Koch, Falowo e Elrod (2024) discutem barreiras de implementação e adoção do HTTP/3, em especial o suporte incompleto ao tráfego UDP em aplicações e serviços, ponto que motiva a escolha de proxy reverso no artefato Node.js.
+
+\subsection{Segurança}
+
+Chatzoglou et al. (2023) conduzem análise comparativa de segurança entre HTTP/3 e HTTP/2, com implicações para APIs expostas publicamente, terminação TLS na borda e configuração de certificados em proxies - aspectos relevantes ao NGINX utilizado no estudo de caso.
+
+\subsection{Migração e arquitetura}
+
+Yu e Benson (2021) mostram, por medição em produção, que o desempenho depende do algoritmo de congestionamento e da implementação do servidor - fator relevante também em arquiteturas com terminação na borda. Muñoz et al. (2025) comparam HTTP/3 e HTTP/2 com integração de proxy, abordagem alinhada à estratégia adotada neste TCC. As normas (QUIC Working Group - IETF, 2021; IETF, 2022) fundamentam semanticamente essa migração, mas não substituem evidência empírica sobre Node.js.
+
+\section{Conclusão}
+
+A revisão sistemática sintetizou nove estudos empíricos ou de revisão (Tabela 6), complementados pela base normativa das RFCs (Tabela 5), sobre desempenho, adoção, segurança e migração de HTTP/3 e QUIC em serviços web. Na Tabela 6, apenas Tripathi, Miraz e Joshi (2023) e Zahra e Ardiansyah (2026) tratam explicitamente de APIs REST. Nenhum dos estudos incluídos investiga a integração de HTTP/3 com Node.js por meio de proxy reverso em cenário controlado.
+
+Essa lacuna motiva o estudo de caso experimental dos capítulos seguintes. O Capítulo 4 descreve a implementação do ambiente de testes, enquanto o Capítulo 5 apresenta os resultados obtidos sobre esse artefato e o Capítulo 6 sintetiza os achados e suas implicações para a adoção de HTTP/3 em APIs Node.js.
+

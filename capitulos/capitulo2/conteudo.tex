@@ -1,0 +1,113 @@
+﻿\chapter{FUNDAMENTAÇÃO TEÓRICA}
+
+\section{Surgimento e evolução dos protocolos HTTP}
+
+O protocolo HTTP surgiu como parte da World Wide Web, com o objetivo inicial de transportar documentos de hipertexto. Desde então, passou da versão 0.9 aos padrões HTTP/1.1, HTTP/2 e HTTP/3, voltados sobretudo a desempenho na transferência de conteúdo.
+
+A versão 0.9 possuía funcionamento muito mais simples: transferia documentos HTML por meio do método GET, sem cabeçalhos. A versão 1.0 introduziu os cabeçalhos, a identificação do tipo de conteúdo e novos métodos, como POST e HEAD, permitindo transferir outros tipos de dados além do hipertexto. Já a versão 1.1 adotou conexões persistentes como comportamento usual: ao reutilizar a mesma conexão entre requisições, reduziu o custo de abertura de novas conexões.
+
+Do ponto de vista arquitetural, o HTTP opera sobre o modelo \textit{request}\textit{-response}, por meio do qual o cliente envia uma requisição e aguarda uma resposta do servidor. Na pilha de protocolos da internet, situa-se este na camada de aplicação, utilizando-se do \textit{Transmission}\textit{ }\textit{Control}\textit{ }\textit{Protocol}\textit{ }(TCP) como o protocolo de transporte e, na generalidade dos serviços atuais, o \textit{Transport}\textit{ }\textit{Layer}\textit{ Security} (TLS) para criptografia, configuração conhecida como HTTPS. Essa combinação se tornou o padrão para comunicação \textit{web} segura e continua sendo a base sobre a qual as versões mais recentes do protocolo evoluíram (PERNA et al., 2022).
+
+Em 2015, foi padronizado o HTTP/2, cujas características principais foram as melhorias de desempenho e a multiplexação de dados. Recentemente, em 2022, a IETF publicou o HTTP/3 (RFC 9114), que é o pilar central deste estudo, o qual substituiu o TCP pelo protocolo QUIC sobre UDP, prometendo redução de latência e maior resiliência em redes instáveis (QUIC Working Group - IETF, 2021; IETF, 2022).
+
+\section{HTTP/2 e suas limitações}
+
+O HTTP/2 representou um avanço significativo em comparação com o HTTP/1.1 ao introduzir enquadramento binário, multiplexação de streams sobre uma única conexão TCP e compressão de cabeçalhos por meio do HPACK. Essas mudanças permitem que múltiplas requisições e respostas sejam transmitidas em paralelo na mesma conexão, reduzindo o bloqueio de requisições associado ao limite de conexões simultâneas do HTTP/1.1.
+
+Apesar dessas melhorias, o HTTP/2 mantém o TCP como protocolo de transporte. Dessa forma, quando ocorre perda de pacotes na camada TCP, todos os \textit{streams} multiplexados na mesma conexão podem ser afetados, fenômeno conhecido como bloqueio \textit{head-of-line} (HOL) em nível de transporte. Em redes com alta latência, perda de pacotes ou instabilidade, como em conexões móveis, essa limitação reduz os ganhos esperados da multiplexação (PERNA et al., 2022; KOCH; FALOWO; ELROD, 2024).
+
+Foi essa restrição estrutural que ensejou o desenvolvimento do HTTP/3, o qual migra a camada de transporte para o QUIC. Ao operar sobre UDP com controle de congestionamento e confiabilidade implementados no espaço do usuário, o QUIC isola a perda de pacotes por \textit{stream}, evitando que a falha em um fluxo bloqueie os demais. Essa distinção entre bloqueio em nível HTTP e em nível de transporte é o cerne para se compreender os benefícios prometidos pelo HTTP/3 (QUIC Working Group - IETF, 2021).
+
+\section{O protocolo QUIC}
+
+O \textit{Quick UDP Internet Connections} (QUIC) é um protocolo de transporte moderno, originalmente projetado pelo Google e posteriormente padronizado pela IETF na RFC 9000. Sua proposta é substituir o TCP em cenários web, operando sobre o \textit{User }\textit{Datagram}\textit{ }\textit{Protocol} (UDP) e integrando, de forma nativa, criptografia TLS 1.3 ao processo de estabelecimento de conexão (QUIC Working Group - IETF, 2021).
+
+Uma das principais inovações do QUIC é a combinação do \textit{handshake} de transporte e segurança em etapas reduzidas. Em conexões novas, o estabelecimento pode ocorrer em 1-RTT (Round-Trip Time), enquanto em reconexões a servidores previamente conhecidos, o recurso 0-RTT permite o envio de dados na primeira mensagem, reduzindo a latência de conexão (QUIC Working Group - IETF, 2021; ZHANG et al., 2025).
+
+O QUIC identifica conexões por meio de \textit{Connection }\textit{IDs} independentes do endereço IP, o que possibilita a migração de conexão, por exemplo, ao alternar entre redes Wi-Fi e móvel sem interromper fluxos ativos. Além disso, cada \textit{stream} possui controle de fluxo e retransmissão independentes, o que elimina o bloqueio HOL em nível de transporte observado no TCP (QUIC Working Group - IETF, 2021; PERNA et al., 2022).
+
+Por ser a base de transporte do HTTP/3, o QUIC concentra boa parte dos ganhos de desempenho associados à nova versão do protocolo HTTP. Entretanto, a sua implementação exige \textit{stacks} específicas compatíveis com UDP e TLS 1.3, o que impacta diretamente sua adoção em plataformas e em servidores consolidados (KOCH; FALOWO; ELROD, 2024).
+
+\section{HTTP/3: arquitetura e características}
+
+O HTTP/3, especificado na RFC 9114, define a semântica HTTP sobre o transporte QUIC, preservando métodos, códigos de \textit{status} e o modelo de recursos utilizados em versões anteriores. A principal mudança arquitetural está na substituição do TCP pelo QUIC, mantendo-se a compatibilidade semântica para aplicações e APIs (IETF, 2022; QUIC Working Group - IETF, 2021).
+
+Na camada de aplicação, o HTTP/3 utiliza o QPACK para compressão de cabeçalhos, adaptando o HPACK do HTTP/2 ao contexto não ordenado do QUIC. Assim, entre as suas características mais relevantes, destacam-se para este estudo:
+
+\begin{enumerate}[label=\alph*)]
+\item a redução do tempo de estabelecimento de conexão, com suporte a 0-RTT em reconexões (QUIC Working Group - IETF, 2021);
+\item a eliminação do bloqueio HOL em nível de transporte, pois perdas de pacotes afetam apenas o stream correspondente (QUIC Working Group - IETF, 2021; PERNA et al., 2022);
+\item a migração de conexão entre redes sem reinício da sessão (QUIC Working Group - IETF, 2021);
+\item a criptografia TLS 1.3 integrada por padrão, sem negociação adicional (QUIC Working Group - IETF, 2021);
+\item o melhor desempenho relativo em redes com latência elevada ou perda de pacotes (PERNA et al., 2022; ZHANG et al., 2025; TRIPATHI; MIRAZ; JOSHI, 2023).
+\end{enumerate}
+
+Estudos de adoção indicam ainda o crescimento progressivo do HTTP/3 na web, muito embora a sua implementação em servidores ainda seja desigual (TREVISAN et al., 2021). Em muitos casos, os ganhos de desempenho dependem da qualidade da implementação QUIC, do algoritmo de controle de congestionamento e das condições de rede, não sendo uniformes em todos os cenários (PERNA et al., 2022; KOCH; FALOWO; ELROD, 2024; YU; BENSON, 2021).
+
+\section{Node.js e suporte a protocolos HTTP}
+
+O Node.js é um ambiente de execução JavaScript de código aberto, multiplataforma e orientado a eventos, que permite a execução de código JavaScript fora do navegador. Construído sobre o motor V8, o mesmo utilizado pelo Google Chrome, o Node.js foi projetado para a construção de aplicações escaláveis e de alto desempenho, especialmente no contexto de servidores \textit{web} e APIs. Sua ampla adoção no mercado se deve, em grande parte, ao vasto ecossistema de bibliotecas disponíveis por meio do NPM (\textit{Node }\textit{Package}\textit{ Manager}), que facilita o desenvolvimento e a integração de diferentes funcionalidades.
+
+No contexto de aplicações \textit{web}, o Node.js é amplamente utilizado para a criação de servidores HTTP. Seu modelo de execução é baseado em uma arquitetura orientada a eventos e não bloqueante (\textit{non-}\textit{blocking}\textit{ I/O}), o que permite que múltiplas requisições sejam tratadas de forma concorrente sem a necessidade de múltiplas \textit{threads}. Esse comportamento é particularmente eficiente em aplicações que lidam com um grande volume de requisições simultâneas, como APIs REST, pois reduz o consumo de recursos e melhora a escalabilidade do sistema.
+
+O funcionamento de um servidor HTTP em Node.js se baseia, de forma simplificada, na escuta de requisições de clientes e no envio de respostas apropriadas. O módulo \textit{node:http} oferece suporte consolidado a HTTP/1.1, enquanto o \textit{node:https} acrescenta TLS e o \textit{node:http2} cobre HTTP/2. Bibliotecas e \textit{frameworks} como Express e NestJS simplificam esse processo, oferecendo mecanismos para definição de rotas, \textit{middlewares} e controle do fluxo de requisições, o que torna o desenvolvimento mais produtivo e organizado. No ambiente experimental deste trabalho, adotou-se o Express pela simplicidade e pela aderência direta ao módulo node:http, conforme descrito no Capítulo 4.
+
+Entretanto, apesar de sua flexibilidade e popularidade, o Node.js ainda não oferece suporte nativo estável a HTTP/3 no núcleo da plataforma. Essa limitação está diretamente relacionada às mudanças estruturais introduzidas pelo HTTP/3, que se baseia no protocolo QUIC e utiliza UDP em vez de TCP, exigindo uma \textit{stack} de transporte distinta da empregada pelos módulos HTTP tradicionais (KOCH; FALOWO; ELROD, 2024; QUIC Working Group - IETF, 2021). Existem implementações experimentais e bibliotecas de terceiros, como \textit{bindings} baseados em quiche ou implementações em JavaScript puro, porém ainda não foram consolidadas como solução padrão do ecossistema (KOCH; FALOWO; ELROD, 2024).
+
+Importante destacar que a ausência de um suporte nativo estável não impede a utilização do HTTP/3 em aplicações baseadas em Node.js. Na prática, é possível ultrapassar essa limitação por meio de componentes intermediários ou bibliotecas especializadas, muito embora isso introduza desafios adicionais relacionados à configuração, integração e análise de desempenho (TRIPATHI; MIRAZ; JOSHI, 2023; CHATZOGLOU et al., 2023).
+
+\section{APIs REST}
+
+As Application Programming Interfaces (APIs) baseadas no estilo arquitetural REST (Representational State Transfer) constituem um dos principais padrões utilizados para comunicação entre sistemas na web. Esse modelo define um conjunto de restrições, como interface uniforme, ausência de estado (stateless), cacheabilidade e sistema em camadas, que orientam a construção de serviços distribuídos.
+
+Na prática, uma API REST utiliza recursos identificados por URLs e métodos do protocolo HTTP, como GET, POST, PUT e DELETE, para realizar operações sobre esses recursos. Cada requisição contém todas as informações necessárias para ser processada, sem depender de estados armazenados no servidor. As respostas geralmente são retornadas em formatos padronizados, como JSON, promovendo a operação integrada entre diferentes sistemas e tecnologias (TRIPATHI; MIRAZ; JOSHI, 2023).
+
+A importância das APIs REST está diretamente relacionada à sua ampla adoção no desenvolvimento de aplicações modernas, especialmente em arquiteturas baseadas em microsserviços e sistemas distribuídos. Sua compatibilidade semântica com o HTTP faz com que a migração entre versões do protocolo - de HTTP/1.1 para HTTP/2 ou HTTP/3 - preserve o contrato da API, alterando principalmente a camada de transporte e, potencialmente, o desempenho observado (PERNA et al., 2022; TRIPATHI; MIRAZ; JOSHI, 2023).
+
+\section{Estratégias de migração e componentes intermediários}
+
+Em ambientes sem suporte nativo ao HTTP/3, como no caso de aplicações Node.js, a sua adoção frequentemente depende do uso de componentes intermediários. O padrão mais comum é a utilização de \textit{proxy} reverso ou \textit{gateway}, que termina a conexão HTTP/3 com o cliente e encaminha as requisições ao backend em HTTP/1.1 ou HTTP/2 (TRIPATHI; MIRAZ; JOSHI, 2023; KOCH; FALOWO; ELROD, 2024).
+
+Servidores como NGINX, Caddy e HAProxy passaram a oferecer suporte experimental ou consolidado a HTTP/3, permitindo que a aplicação \textit{backend} permaneça inalterada enquanto o protocolo moderno é exposto na borda da rede. O cliente pode negociar HTTP/3 por meio do cabeçalho Alt-Svc ou registros DNS HTTPS (SVCB/HTTPS), com fallback para HTTP/2 ou HTTP/1.1 quando necessário (KOCH; FALOWO; ELROD, 2024).
+
+Embora essa abordagem possibilite avaliar o HTTP/3 em APIs REST existentes sem reescrever a aplicação, ela também gera consequências, como a latência adicional no salto intermediário, complexidade operacional (liberação de UDP/443, certificados, observabilidade) e possível mascaramento dos ganhos reais do protocolo no backend (TRIPATHI; MIRAZ; JOSHI, 2023; CHATZOGLOU et al., 2023). Para este trabalho, essa abordagem é vantajosa pois permite uma transição gradativa, alterando o protocolo na camada de borda sem a necessidade de reescrever o \textit{backend}.
+
+\section{Métricas de desempenho em comunicação web}
+
+A avaliação comparativa de protocolos HTTP exige a definição clara de métricas. Neste trabalho, concentram-se indicadores amplamente utilizados em testes de APIs e serviços web:
+
+\begin{enumerate}[label=\alph*)]
+\item latência: intervalo entre o envio de uma requisição e o recebimento da resposta completa, do ponto de vista do cliente;
+\item tempo de resposta: duração total do ciclo requisição-resposta, incluindo o processamento no servidor. Como as ferramentas de carga medem ambos pela mesma grandeza (duração da requisição), latência e tempo de resposta são reportados juntos no Capítulo 5, distinguindo-se apenas do TTFB;
+\item time to First Byte (TTFB): tempo até o recebimento do primeiro byte da resposta, que reflete o estabelecimento de conexão (quando há) e o início do processamento, sem incluir a transferência do corpo;
+\item taxa de transferência (throughput): volume de dados transferidos por unidade de tempo;
+\item requisições por segundo: capacidade do sistema sob carga, medindo escalabilidade e estabilidade.
+\end{enumerate}
+
+Essas métricas orientam a fase experimental deste estudo. A coleta principal utiliza o k6 para HTTP/1.1 e HTTP/2. Já o HTTP/3 é exercitado por um cliente QUIC dedicado, pois o k6 não gera carga sobre QUIC. O detalhamento operacional das ferramentas, dos perfis de carga e dos cenários executados consta no Capítulo 4. A literatura ressalta que os ganhos do HTTP/3 tendem a ser mais expressivos em alta latência ou largura de banda limitada (PERNA et al., 2022) e, sob rede severamente degradada, em operações GET com alta concorrência (ZAHRA; ARDIANSYAH, 2026). Em condições ideais, com alta concorrência e payload médio, a diferença pode se inverter em favor do HTTP/2, conforme a implementação (ZAHRA; ARDIANSYAH, 2026).
+
+\section{Discussão}
+
+Os conceitos apresentados convergem para um mesmo problema prático, de expor o HTTP/3 em APIs Node.js sem suporte QUIC nativo, preservando-se o contrato REST e medindo se os ganhos prometidos pelo protocolo se materializam no cenário de proxy reverso. A Tabela 1 resume diferenças estruturais relevantes para o desenho experimental.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparação sintética entre HTTP/1.1, HTTP/2 e HTTP/3}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{28mm}>{\raggedright\arraybackslash}p{32mm}>{\raggedright\arraybackslash}p{36mm}>{\raggedright\arraybackslash}p{46mm}@{}}
+\hline
+\textbf{Aspecto} & \textbf{HTTP/1.1} & \textbf{HTTP/2} & \textbf{HTTP/3} \\
+\hline
+Transporte & TCP & TCP & QUIC (UDP) (QUIC Working Group -- IETF, 2021; IETF, 2022) \\
+Multiplexação & Limitada (várias conexões) & \textit{Streams} sobre uma conexão TCP & \textit{Streams} independentes sobre QUIC \\
+Bloqueio HOL (transporte) & Por conexão TCP & Afeta todos os \textit{streams} da conexão (PERNA et al., 2022) & Isolado por \textit{stream} (QUIC Working Group -- IETF, 2021) \\
+Handshake & TCP + TLS (múltiplas RTTs) & Similar ao HTTP/1.1 com TLS & Integração transporte/TLS; 0-RTT em reconexões (QUIC Working Group -- IETF, 2021) \\
+Implicação em Node.js & Suporte nativo (node:http) & Suporte nativo (node:http2) & Exige \textit{stack} QUIC ou \textit{proxy} na borda (KOCH; FALOWO; ELROD, 2024) \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor a partir de (QUIC Working Group - IETF, 2021; IETF, 2022; PERNA et al., 2022; KOCH; FALOWO; ELROD, 2024)}
+\end{table}
+
+Para este TCC, a comparação experimental precisa levar em conta que HTTP/1.1 é medido diretamente na API, enquanto HTTP/2 e HTTP/3 compartilham terminação TLS no NGINX, assimetria que influencia a interpretação de latência e \textit{throughput}. A revisão sistemática do Capítulo 3 mapeia evidências empíricas sobre desempenho e migração; o estudo de caso dos Capítulos 4 e 5 operacionaliza a estratégia de proxy e quantifica o comportamento observado em laboratório.
+
