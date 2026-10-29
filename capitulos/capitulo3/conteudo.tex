@@ -1,12 +1,14 @@
-﻿\chapter{REVISÃO SISTEMÁTICA DE LITERATURA}
+﻿\chapter{REVISÃO RÁPIDA DA LITERATURA}
 
-Este capítulo apresenta o protocolo e os resultados da revisão de literatura (RSL) sobre HTTP/3, QUIC, desempenho e implementação em APIs REST e serviços web. A revisão busca identificar e sintetizar as evidências disponíveis para apoiar as questões de pesquisa definidas no Capítulo 1.
+Este capítulo apresenta o protocolo e os resultados da revisão rápida da literatura sobre HTTP/3, QUIC, desempenho e implementação em APIs REST e serviços web. A revisão busca identificar e sintetizar as evidências disponíveis para apoiar as questões de pesquisa definidas no Capítulo 1.
 
 \section{Protocolo de pesquisa}
 
-Esta revisão de literatura foi conduzida com base em diretrizes para revisões sistemáticas em Engenharia de Software descritas por Kitchenham e Charters (2007). O objetivo é identificar, selecionar e sintetizar estudos sobre HTTP/3, QUIC, desempenho e implementação em APIs ou serviços web que ajudem a responder às questões de pesquisa.
+Esta revisão rápida da literatura seguiu as diretrizes de Kitchenham e Charters (2007) para revisões sistemáticas em Engenharia de Software e as de Cartaxo, Pinto e Soares (2020) para revisões rápidas. O objetivo é identificar, selecionar e sintetizar estudos sobre HTTP/3, QUIC, desempenho e implementação em APIs ou serviços web que ajudem a responder às questões de pesquisa.
 
-A revisão seguiu as etapas de: (i) definição da questão de revisão e dos critérios de busca; (ii) execução da busca nas bases selecionadas; (iii) remoção de duplicatas; (iv) triagem por título e resumo; (v) leitura integral dos estudos potencialmente elegíveis; (vi) extração de dados e síntese temática dos estudos incluídos.
+A revisão seguiu as etapas de: (i) definição da questão de revisão e dos critérios de busca; (ii) execução da busca nas bases selecionadas; (iii) remoção de duplicatas; (iv) triagem por título e resumo; (v) leitura integral dos estudos potencialmente elegíveis; (vi) avaliação de qualidade dos estudos empíricos, com o checklist da Tabela 3; (vii) extração de dados e síntese temática dos estudos incluídos.
+
+Triagem, leitura integral, avaliação de qualidade e extração foram feitas por um único aluno, sem segundo revisor.
 
 A questão norteadora da revisão foi ``\textit{Quais evidências a literatura apresenta sobre desempenho, implementação e migração de HTTP/3 e QUIC em APIs REST e serviços web, e quais lacunas permanecem quanto à adoção em ambientes Node.js?}\textit{''}
 
@@ -72,17 +74,36 @@ Critérios de exclusão:
 \item pré-prints sem revisão por pares, exceto quando citados como complemento a versões publicadas.
 \end{enumerate}
 
+A leitura integral dos estudos empíricos seguiu o checklist da Tabela 3. Os três critérios vêm da avaliação de qualidade de Kitchenham e Charters (2007). Em revisão rápida, Cartaxo, Pinto e Soares (2020) admitem um checklist mais curto. As RFC 9000 e RFC 9114 ficam fora desse checklist e entram na revisão só como normas.
+
+\begin{table}[htbp]
+\centering
+\caption{Critérios de avaliação de qualidade dos estudos empíricos}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{18mm}>{\raggedright\arraybackslash}p{126mm}@{}}
+\hline
+\textbf{Critério} & \textbf{Verificação} \\
+\hline
+a & O estudo explicita objetivo e procedimento (medição, análise ou revisão). \\
+b & O contexto da evidência está descrito (rede, carga, implementação ou corpus da revisão). \\
+c & Há dados comparativos, implementação ou análise aplicável a HTTP/3, QUIC, APIs ou serviços web. \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor.}
+\end{table}
+
 O processo de seleção dos estudos seguiu um funil em cinco etapas:
 
 \begin{enumerate}[label=\alph*)]
-\item identificação - registros retornados pelas buscas em cada base (Tabela 4);
+\item identificação - registros retornados pelas buscas em cada base (Tabela 5);
 \item deduplicação - remoção de 515 registros duplicados, principalmente entre Scopus, Google Scholar e Springer Link, resultando em 284 estudos únicos;
 \item triagem - leitura de título e resumo, com exclusão de 260 estudos por não atenderem aos critérios de inclusão (foco em domínios distintos, ausência de relação com HTTP/3/QUIC ou APIs);
-\item elegibilidade - leitura integral de 24 estudos, dos quais 13 foram excluídos por não apresentarem dados comparativos, implementação ou análise aplicável ao escopo deste TCC;
-\item inclusão - 11 documentos selecionados para síntese: duas normas técnicas (RFC 9000 e RFC 9114) e nove estudos empíricos ou de revisão com dados comparativos (Tabelas 5 e 6).
+\item elegibilidade - leitura integral de 24 estudos, dos quais 13 foram excluídos por não atenderem ao critério c da Tabela 3 (dados comparativos, implementação ou análise aplicável ao escopo deste TCC);
+\item inclusão - 11 documentos selecionados para síntese: duas normas técnicas (RFC 9000 e RFC 9114) e nove estudos empíricos ou de revisão com dados comparativos (Tabelas 6 e 7).
 \end{enumerate}
 
-A Tabela 3 resume o quantitativo de estudos em cada etapa do processo de seleção.
+A Tabela 4 resume o quantitativo de estudos em cada etapa do processo de seleção.
 
 
 \begin{table}[htbp]
@@ -102,7 +123,7 @@ Após elegibilidade (leitura integral) & 11 \\
 \fonte{Fonte: elaborado pelo autor (buscas realizadas em 29/06/2026). Nota: os 11 documentos incluem 2 normas (RFC) e 9 estudos empíricos ou de revisão sintetizados nos eixos temáticos.}
 \end{table}
 
-A Tabela 4 apresenta a quantidade de registros identificados em cada base de dados consultada, antes da deduplicação. O total bruto de 799 registros reflete sobreposição entre indexadores; após remoção de duplicatas, permaneceram 284 estudos únicos para triagem.
+A Tabela 5 apresenta a quantidade de registros identificados em cada base de dados consultada, antes da deduplicação. O total bruto de 799 registros reflete sobreposição entre indexadores; após remoção de duplicatas, permaneceram 284 estudos únicos para triagem.
 
 
 \begin{table}[htbp]
@@ -126,11 +147,11 @@ Google Scholar & 168 & 1 \\
 \fonte{Fonte: elaborado pelo autor (buscas realizadas em 29/06/2026). Nota: a coluna ``Estudos incluídos'' indica em qual base cada um dos 11 documentos finais foi originalmente identificado.}
 \end{table}
 
-Os quantitativos por base foram obtidos pelas interfaces de busca avançada de cada plataforma em 29/06/2026, com as strings da Tabela 2. As normas RFC 9000 e RFC 9114 não integram esses totais; foram incluídas manualmente por fundamentarem semanticamente QUIC e HTTP/3 (Tabela 5).
+Os quantitativos por base foram obtidos pelas interfaces de busca avançada de cada plataforma em 29/06/2026, com as strings da Tabela 2. As normas RFC 9000 e RFC 9114 estão entre os 11 documentos da elegibilidade. Entram na coluna ``Estudos incluídos'' da Tabela 5 e no fechamento do funil, de 24 estudos lidos para 11 incluídos. A Tabela 6 separa essas normas da evidência empírica.
 
-\section{Resultados da Revisão da Literatura}
+\section{Resultados da revisão rápida da literatura}
 
-Esta seção apresenta os resultados da revisão, organizados em base normativa e síntese empírica. As Tabelas 5 e 6 resumem os documentos incluídos após a elegibilidade.
+Esta seção apresenta os resultados da revisão, organizados em base normativa e síntese empírica. As Tabelas 6 e 7 resumem os documentos incluídos após a elegibilidade.
 
 \begin{table}[htbp]
 \centering
@@ -188,7 +209,7 @@ Yu e Benson (2021) mostram, por medição em produção, que o desempenho depend
 
 \section{Conclusão}
 
-A revisão sistemática sintetizou nove estudos empíricos ou de revisão (Tabela 6), complementados pela base normativa das RFCs (Tabela 5), sobre desempenho, adoção, segurança e migração de HTTP/3 e QUIC em serviços web. Na Tabela 6, apenas Tripathi, Miraz e Joshi (2023) e Zahra e Ardiansyah (2026) tratam explicitamente de APIs REST. Nenhum dos estudos incluídos investiga a integração de HTTP/3 com Node.js por meio de proxy reverso em cenário controlado.
+A revisão rápida da literatura sintetizou nove estudos empíricos ou de revisão (Tabela 7), complementados pela base normativa das RFCs (Tabela 6), sobre desempenho, adoção, segurança e migração de HTTP/3 e QUIC em serviços web. Na Tabela 7, apenas Tripathi, Miraz e Joshi (2023) e Zahra e Ardiansyah (2026) tratam explicitamente de APIs REST. Nenhum dos estudos incluídos investiga a integração de HTTP/3 com Node.js por meio de proxy reverso em cenário controlado.
 
 Essa lacuna motiva o estudo de caso experimental dos capítulos seguintes. O Capítulo 4 descreve a implementação do ambiente de testes, enquanto o Capítulo 5 apresenta os resultados obtidos sobre esse artefato e o Capítulo 6 sintetiza os achados e suas implicações para a adoção de HTTP/3 em APIs Node.js.
 

@@ -105,7 +105,7 @@ Os \textit{scripts} estão organizados em benchmarks/: cenários k6 em benchmark
 
 \subsection{Desafios técnicos e mitigações (QP2)}
 
-A integração de HTTP/3 com Node.js por proxy reverso expõe desafios operacionais além da configuração básica do NGINX. A Tabela 7 resume os principais obstáculos encontrados na implementação do artefato e as estratégias adotadas para mitigá-los, respondendo à QP2.
+A integração de HTTP/3 com Node.js por proxy reverso expõe desafios operacionais além da configuração básica do NGINX. A Tabela 8 resume os principais obstáculos encontrados na implementação do artefato e as estratégias adotadas para mitigá-los, respondendo à QP2.
 
 \begin{table}[htbp]
 \centering
@@ -147,7 +147,7 @@ O servidor HTTP utiliza o módulo nativo node:http, expondo HTTP/1.1 na porta co
 
 \subsection{Rotas de benchmark}
 
-Além da rota de health check (GET /health), a API expõe três \textit{endpoints} dedicados a avaliações de desempenho, projetados para permitir a medição das métricas da Seção 2.8. A Tabela 8 resume o contrato REST de cada rota.
+Além da rota de health check (GET /health), a API expõe três \textit{endpoints} dedicados a avaliações de desempenho, projetados para permitir a medição das métricas da Seção 2.8. A Tabela 9 resume o contrato REST de cada rota.
 
 \begin{table}[htbp]
 \centering
@@ -171,7 +171,7 @@ Os payloads de /bench/payload/:size são pré-computados em startup da aplicaç�
 
 \subsection{Configuração experimental}
 
-Parâmetros operacionais da API são controlados por variáveis de ambiente, validadas em startup. A Tabela 9 resume as variáveis relevantes para os experimentos.
+Parâmetros operacionais da API são controlados por variáveis de ambiente, validadas em startup. A Tabela 10 resume as variáveis relevantes para os experimentos.
 
 A variável BENCHMARK\_MODE foi introduzida para evitar que o rate limiter (100 re-quisições por minuto, por padrão) distorça testes de carga sob concorrência elevada. Quando ativada, o limitador é ignorado, permitindo medições de capacidade e estabilidade sob carga.
 
@@ -205,7 +205,7 @@ Quando configurada, a variável METRICS\_FILE habilita a gravação de cada mét
 
 O NGINX utiliza um formato de log personalizado que registra \$request\_time (tempo total da requisição no proxy) e \$upstream\_response\_time (tempo de resposta do backend). Esses valores complementam as métricas da aplicação na estimativa de TTFB e do tempo de resposta fim a fim.
 
-A Tabela 10 relaciona as métricas da Seção 2.8 às fontes de medição disponíveis no ambiente experimental.
+A Tabela 11 relaciona as métricas da Seção 2.8 às fontes de medição disponíveis no ambiente experimental.
 
 \begin{table}[htbp]
 \centering

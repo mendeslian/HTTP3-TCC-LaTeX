@@ -10,13 +10,13 @@ O conjunto de dados reportado neste capítulo compreende duas campanhas. A subma
 
 As duas campanhas foram executadas na mesma estação de trabalho com Windows 11 Pro (build 10.0.26200), processador AMD Ryzen 5 5600 com seis núcleos físicos e doze threads, cerca de 16 GB de RAM, arquitetura x86\_64. Ferramentas no host: k6 v2.2.0, Docker 29.4.2 e Node.js v22.13.0; API e NGINX em contêineres node:20-alpine na rede bench (docker-compose.bench.yml). Em ambas, k6 no host mediu HTTP/1.1 e HTTP/2, e o cliente QUIC (curl-http3 em contêiner) mediu HTTP/3, conforme benchmarks/README.md. A submatriz degradada não aplicou intervalo entre réplicas (cooldown\_sec = 0); a matriz ideal usou três minutos entre réplicas. Os p95 de /bench/ping com 50 VUs em clean nas duas campanhas são próximos (Seções 5.2 e 5.4), com diferença explicável pela duração do teste (30 s versus 60 s).
 
-As cinco métricas da Seção 2.8 foram registradas em cada execução (http\_req\_duration para latência e tempo de resposta, http\_req\_waiting para TTFB, data\_received\_rate para taxa de transferência e http\_reqs\_rate para requisições por segundo). As tabelas principais deste capítulo destacam o percentil 95 de duração e a taxa de requisições; a Tabela 18 complementa a matriz ideal com TTFB e throughput de recepção agregados a partir do mesmo summary.csv. O cliente HTTP/3 não exporta data\_received\_rate no esquema normalizado, de modo que células correspondentes aparecem como ``---''.
+As cinco métricas da Seção 2.8 foram registradas em cada execução (http\_req\_duration para latência e tempo de resposta, http\_req\_waiting para TTFB, data\_received\_rate para taxa de transferência e http\_reqs\_rate para requisições por segundo). As tabelas principais deste capítulo destacam o percentil 95 de duração e a taxa de requisições; a Tabela 19 complementa a matriz ideal com TTFB e throughput de recepção agregados a partir do mesmo summary.csv. O cliente HTTP/3 não exporta data\_received\_rate no esquema normalizado, de modo que células correspondentes aparecem como ``---''.
 
 \section{Submatriz degradada: perfil de controle (clean)}
 
 Esta seção e a seguinte se referem exclusivamente à campanha de rede degradada (2026-10-15\_10-13-06), com 30 s por execução e sem intervalo entre réplicas. O perfil clean funciona como controle, sem netem; a matriz ideal, com variação de payload e de concorrência, é tratada separadamente na Seção 5.4.
 
-A Tabela 11 resume a mediana do percentil 95 do tempo de requisição (http\_req\_duration\_p95, em milissegundos) e a mediana da taxa de requisições por segundo (http\_reqs\_rate), com dez réplicas por protocolo. Sob netem, o IQR entre réplicas no caminho HTTP/3 supera o de HTTP/1.1 e HTTP/2, o que é coerente com o uso de cliente QUIC em contêiner Docker (Seção 5.6)
+A Tabela 12 resume a mediana do percentil 95 do tempo de requisição (http\_req\_duration\_p95, em milissegundos) e a mediana da taxa de requisições por segundo (http\_reqs\_rate), com dez réplicas por protocolo. Sob netem, o IQR entre réplicas no caminho HTTP/3 supera o de HTTP/1.1 e HTTP/2, o que é coerente com o uso de cliente QUIC em contêiner Docker (Seção 5.6)
 
 
 \begin{table}[H]
@@ -39,7 +39,7 @@ Sem degradação de rede e com payload mínimo, HTTP/1.1 direto à API apresento
 
 \section{Rede degradada}
 
-As Tabelas 12--14 apresentam o mesmo recorte (/bench/ping, 50 VUs, n = 10) para os perfis com tc netem. Sob latência artificial de 100 ms, os percentis 95 de HTTP/1.1 e HTTP/2 sobem para cerca de 112 ms e praticamente se igualam, enquanto HTTP/3 mantém valores mais altos, com IQR entre réplicas em torno de 11 ms em lag\_100ms.
+As Tabelas 13--15 apresentam o mesmo recorte (/bench/ping, 50 VUs, n = 10) para os perfis com tc netem. Sob latência artificial de 100 ms, os percentis 95 de HTTP/1.1 e HTTP/2 sobem para cerca de 112 ms e praticamente se igualam, enquanto HTTP/3 mantém valores mais altos, com IQR entre réplicas em torno de 11 ms em lag\_100ms.
 
 No perfil loss\_1pct, HTTP/1.1 manteve p95 mediano equivalente ao clean (26,8 ms), HTTP/2 aumentou cerca de 5 ms (37,5 ms contra 32,5 ms) e HTTP/3 cerca de 18 ms (345,9 ms contra 327,8 ms). Com payload mínimo, a perda de 1\% no tráfego de saída teve efeito pequeno em HTTP/1.1 e efeito moderado nos caminhos via proxy e no cliente QUIC. HTTP/3 permaneceu na ordem de centenas de milissegundos.
 
@@ -96,7 +96,7 @@ No perfil combinado lag\_100ms\_loss\_1pct, HTTP/1.1 e HTTP/2 seguem próximos e
 
 A Figura 3 sintetiza visualmente o p95 mediano de duração por protocolo nos quatro perfis netem da submatriz degradada.
 
-Na submatriz degradada, com /bench/ping e corpo de resposta mínimo, a mediana de http\_req\_waiting\_p95 praticamente coincide com a de http\_req\_duration\_p95 (diferença abaixo de 0,2 ms em k6; nula no cliente QUIC normalizado): com resposta tão pequena, o primeiro byte e o último chegam quase juntos. A Tabela 15 registra esse TTFB mediano (IQR) para completude.
+Na submatriz degradada, com /bench/ping e corpo de resposta mínimo, a mediana de http\_req\_waiting\_p95 praticamente coincide com a de http\_req\_duration\_p95 (diferença abaixo de 0,2 ms em k6; nula no cliente QUIC normalizado): com resposta tão pequena, o primeiro byte e o último chegam quase juntos. A Tabela 16 registra esse TTFB mediano (IQR) para completude.
 
 
 
@@ -104,7 +104,7 @@ Na submatriz degradada, com /bench/ping e corpo de resposta mínimo, a mediana d
 \centering
 \includegraphics[width=0.92\textwidth]{assets/figuras/fig3.png}
 \caption{Submatriz degradada - mediana do p95 de duração (/bench/ping, 50 VUs, n = 10)}
-\fonte{Fonte: elaborado pelo autor (Tabelas 11--14).}
+\fonte{Fonte: elaborado pelo autor (Tabelas 12--15).}
 \end{figure}
 
 
@@ -129,7 +129,7 @@ lag\_\allowbreak 100ms\_\allowbreak loss\_\allowbreak 1pct & 110,8 (0,1) & 111 (
 
 A matriz de payload e de concorrência em rede ideal (clean) foi executada conforme o desenho do Capítulo 4: GET /bench/ping com 10, 50 e 100 VUs; GET /bench/payload/:size (1 KB, 100 KB e 1 MB) e POST /bench/echo (corpo de 100 KB) com 50 VUs; três protocolos por célula; 60 s de duração e ramp-up de 10 s; 10 réplicas por célula (21 células, 210 execuções), com intervalo de três minutos entre réplicas. A campanha foi agregada em benchmarks/results/2026-10-01\_08-38-06/, e todas as execuções registraram http\_req\_failed\_rate nulo. O ambiente de coleta é o mesmo da submatriz degradada (Seção 5.1); diferem a duração do teste, o intervalo entre réplicas e o desenho experimental.
 
-A Tabela 16 resume a variação de concorrência em /bench/ping. A Tabela 17 resume payload e echo com carga fixa de 50 VUs. Em ambas, reportam-se a mediana do percentil 95 do tempo de requisição, o IQR entre réplicas e a mediana da taxa de requisições por segundo, no mesmo formato das demais tabelas deste capítulo.
+A Tabela 17 resume a variação de concorrência em /bench/ping. A Tabela 18 resume payload e echo com carga fixa de 50 VUs. Em ambas, reportam-se a mediana do percentil 95 do tempo de requisição, o IQR entre réplicas e a mediana da taxa de requisições por segundo, no mesmo formato das demais tabelas deste capítulo.
 
 
 \begin{table}[H]
@@ -188,10 +188,10 @@ A Figura 4 ilustra o crescimento do p95 mediano em /bench/ping conforme a concor
 \centering
 \includegraphics[width=0.92\textwidth]{assets/figuras/fig4.png}
 \caption{Matriz ideal - mediana do p95 de duração em /bench/ping por nível de concorrência (n = 10)}
-\fonte{Fonte: elaborado pelo autor (Tabela 16).}
+\fonte{Fonte: elaborado pelo autor (Tabela 17).}
 \end{figure}
 
-A Tabela 18 reporta TTFB (http\_req\_waiting\_p95) e taxa de recepção (data\_received\_rate) na mesma campanha. Em transferências volumosas (GET 1 MB), o TTFB permanece baixo em HTTP/1.1 e HTTP/2 enquanto o tempo total de resposta cresce (Tabela 17), separando o custo de estabelecimento e início de resposta do tempo de transferência do corpo.
+A Tabela 19 reporta TTFB (http\_req\_waiting\_p95) e taxa de recepção (data\_received\_rate) na mesma campanha. Em transferências volumosas (GET 1 MB), o TTFB permanece baixo em HTTP/1.1 e HTTP/2 enquanto o tempo total de resposta cresce (Tabela 18), separando o custo de estabelecimento e início de resposta do tempo de transferência do corpo.
 
 Na matriz ideal, HTTP/1.1 direto à API registrou menores p95 e maiores taxas de requisição que os caminhos via NGINX; entre HTTP/2 e HTTP/3 no mesmo proxy, HTTP/2 apresentou p95 mais baixo e taxa de requisições mais alta em todas as células. A latência cresce com a concorrência e com o tamanho do corpo, e a distância entre HTTP/3 e os demais aumenta em transferências volumosas (p95 mediano de 2779,6 ms no GET de 1 MB). Essas diferenças devem ser lidas à luz da assimetria de topologia e do cliente QUIC (Seção 5.6); a interpretação detalhada consta na Seção 5.5.
 
@@ -235,11 +235,11 @@ POST echo 100 KB & HTTP/3 & 1542,4 & 61,8 & --- \\
 
 Acerca da viabilidade e integração (QP1 e QP4), as campanhas em rede clean e degradada mostram que o caminho HTTP/3 permaneceu operacional, com taxa de falha nula em todas as células agregadas. O artefato (API, NGINX, Docker e runners) foi executado com o mesmo roteiro na mesma estação, em duas campanhas independentes, o que indica reprodutibilidade operacional no ambiente de laboratório, embora não substitua replicação em outro hardware. A estratégia de proxy reverso materializa uma migração incremental sem alterar o backend Node.js, alinhada a estudos com integração de proxy (MUÑOZ et al., 2025).
 
- Três limites estruturais condicionam a leitura dos números para análise do desempenho comparativo (QP3) e viés de desenho. Primeiro, HTTP/1.1 foi medido com acesso direto à API (:3000), enquanto HTTP/2 e HTTP/3 passam pelo NGINX (:8443); portanto, posicionar HTTP/1.1 como ``melhor protocolo'' confunde efeito de topologia com efeito de versão HTTP. A comparação menos enviesada no laboratório é entre HTTP/2 e HTTP/3, ambos terminados no mesmo proxy; mesmo assim, o HTTP/3 registrou p95 mais alto e taxa de requisições mais baixa em todas as tabelas reportadas (Tabelas 16, 17 e 18; Figuras 3 e 4).
+ Três limites estruturais condicionam a leitura dos números para análise do desempenho comparativo (QP3) e viés de desenho. Primeiro, HTTP/1.1 foi medido com acesso direto à API (:3000), enquanto HTTP/2 e HTTP/3 passam pelo NGINX (:8443); portanto, posicionar HTTP/1.1 como ``melhor protocolo'' confunde efeito de topologia com efeito de versão HTTP. A comparação menos enviesada no laboratório é entre HTTP/2 e HTTP/3, ambos terminados no mesmo proxy; mesmo assim, o HTTP/3 registrou p95 mais alto e taxa de requisições mais baixa em todas as tabelas reportadas (Tabelas 17, 18 e 19; Figuras 3 e 4).
 
 Segundo, o p95 mediano de HTTP/3 em /bench/ping com 50 VUs permaneceu na ordem de centenas de milissegundos em clean (327,8 ms na campanha degradada; 351,7 ms na matriz ideal). Sob lag\_100ms, o p95 de HTTP/3 sobe cerca de 102 ms (429,4 ms), incremento semelhante ao de HTTP/1.1 e HTTP/2 (cerca de 85 ms), mas somado a uma base já alta, dominada pelo cliente QUIC em contêiner. Na matriz ideal, enquanto a concorrência sobe de 10 para 100 VUs, a taxa de requisições de HTTP/3 fica praticamente estável (163, 180 e 186 req/s) e o p95 cresce quase na mesma proporção dos VUs (58,9, 351,7 e 699,3 ms), comportamento típico de um teto de vazão em que as requisições adicionais apenas esperam na fila. Esse padrão sugere que a ordem de grandeza observada para HTTP/3 é determinada sobretudo pelo cliente QUIC em contêiner e pelo pipeline de medição; o efeito de rede simulado modula o valor absoluto, mas não altera a distância em relação a HTTP/1.1 e HTTP/2 medidos com k6.
 
-Terceiro, na matriz ideal o TTFB reportado para HTTP/3 coincide com o tempo total de resposta em /bench/ping e em transferências volumosas (por exemplo, 2779,6 ms no GET de 1 MB), enquanto HTTP/1.1 e HTTP/2 exibem TTFB baixo com duração total maior (Tabela 18). Assim, métricas homônimas entre k6 e o cliente QUIC não são diretamente comparáveis. Diante desses limites, os dados não permitem concluir superioridade ou inferioridade intrínseca de HTTP/3; apenas registram o comportamento fim a fim (\textit{end-to-end}) do arranjo medido, em linha com evidências contextuais da literatura (ZAHRA; ARDIANSYAH, 2026; PERNA et al., 2022; TRIPATHI; MIRAZ; JOSHI, 2023; ZHANG et al., 2025).
+Terceiro, na matriz ideal o TTFB reportado para HTTP/3 coincide com o tempo total de resposta em /bench/ping e em transferências volumosas (por exemplo, 2779,6 ms no GET de 1 MB), enquanto HTTP/1.1 e HTTP/2 exibem TTFB baixo com duração total maior (Tabela 19). Assim, métricas homônimas entre k6 e o cliente QUIC não são diretamente comparáveis. Diante desses limites, os dados não permitem concluir superioridade ou inferioridade intrínseca de HTTP/3; apenas registram o comportamento fim a fim (\textit{end-to-end}) do arranjo medido, em linha com evidências contextuais da literatura (ZAHRA; ARDIANSYAH, 2026; PERNA et al., 2022; TRIPATHI; MIRAZ; JOSHI, 2023; ZHANG et al., 2025).
 
 Os resultados informam mais a decisão sobre como expor HTTP/3 (proxy, certificados, UDP, observabilidade) do que sobre quando HTTP/3 supera HTTP/2. A integração por proxy introduz custos operacionais discutidos na literatura (MUÑOZ et al., 2025; TRIPATHI; MIRAZ; JOSHI, 2023), e interpretar a latência fim a fim exige correlacionar ferramentas de carga, logs do NGINX e Server-Timing (Capítulo 4), tarefa que fica como continuidade empírica.
 

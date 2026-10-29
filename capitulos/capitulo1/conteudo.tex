@@ -22,7 +22,7 @@ O HTTP persiste como o principal canal de comunicação na \textit{web}, de modo
 
 \section{Objetivo}
 
-Objetiva-se, pois, com este trabalho, examinar a viabilidade, os desafios, o desempenho comparativo e as estratégias de integração do HTTP/3 em APIs REST baseadas em Node.js, articulando fundamentação teórica, revisão de literatura e, especialmente, o estudo de caso experimental. Nele, foi desenvolvida uma API orientada a benchmarks, exposta a HTTP/1.1, HTTP/2 e HTTP/3 com terminação QUIC em proxy reverso NGINX; cujos resultados serão analisados nos Capítulos 4 e 5.
+Objetiva-se, pois, com este trabalho, examinar a viabilidade, os desafios, o desempenho comparativo e as estratégias de integração do HTTP/3 em APIs REST baseadas em Node.js, articulando fundamentação teórica, revisão rápida da literatura e, especialmente, o estudo de caso experimental. Nele, foi desenvolvida uma API orientada a benchmarks, exposta a HTTP/1.1, HTTP/2 e HTTP/3 com terminação QUIC em proxy reverso NGINX; cujos resultados serão analisados nos Capítulos 4 e 5.
 
 \subsection{Objetivos específicos}
 
@@ -46,7 +46,7 @@ Este trabalho se baseia em uma abordagem experimental, através da combinação 
 \fonte{Fonte: elaborado pelo autor}
 \end{figure}
 
-No que tange ao eixo teórico, o Capítulo 2 busca apresentar a fundamentação sobre HTTP, QUIC e HTTP/3, Node.js, APIs REST e métricas de desempenho; enquanto o Capítulo 3 conduz a revisão de literatura (KITCHENHAM; CHARTERS, 2007), com protocolo de busca, critérios de inclusão e síntese temática.
+No que tange ao eixo teórico, o Capítulo 2 busca apresentar a fundamentação sobre HTTP, QUIC e HTTP/3, Node.js, APIs REST e métricas de desempenho; enquanto o Capítulo 3 conduz a revisão rápida da literatura (KITCHENHAM; CHARTERS, 2007; CARTAXO; PINTO; SOARES, 2020), com protocolo de busca, critérios de inclusão e síntese temática.
 
 Já em relação ao eixo prático, foi implementado um artefato reprodutível (API Node.js, NGINX, Docker e roteiros de coleta) descrito no Capítulo 4. O HTTP/3 é exposto na borda por proxy reverso, pois o \textit{runtime} não oferece suporte nativo estável ao protocolo (KOCH; FALOWO; ELROD, 2024).
 
@@ -58,7 +58,7 @@ Tendo-se em vista que a evolução dos protocolos \textit{web} exige que equipes
 
 \section{Contribuições}
 
-Este trabalho visa contribuir com uma revisão sistemática de literatura sobre HTTP/3, QUIC e APIs REST, destacando lacunas quanto a Node.js e proxy reverso, mas também com um artefato de software reprodutível (API, infraestrutura Docker/NGINX e roteiros de benchmark), o qual permite investigar empiricamente essa lacuna. Também, contribui com a apresentação de evidências empíricas comparativas entre HTTP/1.1, HTTP/2 e HTTP/3, com agregação estatística e com a discussão de limitações metodológicas, disponibilizadas em repositório aberto para replicação.
+Este trabalho visa contribuir com uma revisão rápida da literatura sobre HTTP/3, QUIC e APIs REST, destacando lacunas quanto a Node.js e proxy reverso, mas também com um artefato de software reprodutível (API, infraestrutura Docker/NGINX e roteiros de benchmark), o qual permite investigar empiricamente essa lacuna. Também, contribui com a apresentação de evidências empíricas comparativas entre HTTP/1.1, HTTP/2 e HTTP/3, com agregação estatística e com a discussão de limitações metodológicas, disponibilizadas em repositório aberto para replicação.
 
 \section{Questões de pesquisa}
 

@@ -1,6 +1,6 @@
 ﻿\chapter{CONSIDERAÇÕES FINAIS}
 
-Este trabalho buscou investigar a viabilidade, os desafios, o desempenho comparativo e as estratégias de integração do protocolo HTTP/3 em APIs REST desenvolvidas com Node.js, conforme o objetivo estabelecido na Introdução. A fundamentação teórica (Capítulo 2) e a revisão sistemática de literatura (Capítulo 3) forneceram o embasamento para o estudo de caso experimental descrito no Capítulo 4 e para a análise dos resultados apresentada no Capítulo 5. As seções a seguir sintetizam os achados em relação às questões de pesquisa, explicitam as contribuições do estudo, remetem às limitações já discutidas quantitativamente e indicam direções para pesquisas posteriores.
+Este trabalho buscou investigar a viabilidade, os desafios, o desempenho comparativo e as estratégias de integração do protocolo HTTP/3 em APIs REST desenvolvidas com Node.js, conforme o objetivo estabelecido na Introdução. A fundamentação teórica (Capítulo 2) e a revisão rápida da literatura (Capítulo 3) forneceram o embasamento para o estudo de caso experimental descrito no Capítulo 4 e para a análise dos resultados apresentada no Capítulo 5. As seções a seguir sintetizam os achados em relação às questões de pesquisa, explicitam as contribuições do estudo, remetem às limitações já discutidas quantitativamente e indicam direções para pesquisas posteriores.
 
 \section{Síntese dos resultados e respostas às questões de pesquisa}
 
@@ -14,11 +14,13 @@ Já no que tange às estratégias de integração em ambientes consolidados (QP4
 
 \section{Contribuições}
 
-As três contribuições anunciadas na Introdução - revisão sistemática, artefato reprodutível e evidências empíricas - foram entregues. Os resultados acrescentam a elas dois aprendizados metodológicos. O primeiro é a constatação de que, no arranjo testado, o gerador de carga QUIC limita a medida de HTTP/3 a ponto de mascarar o efeito do perfil de rede, o que torna a homogeneidade das ferramentas de carga um requisito metodológico, e não um detalhe. O segundo é a evidência de que a assimetria de topologia (HTTP/1.1 direto versus HTTP/2 e HTTP/3 via proxy) precisa ser controlada no desenho de qualquer comparação entre versões do HTTP em APIs Node.js. O código-fonte e os roteiros operacionais estão publicados em repositório aberto (\url{https://github.com/mendeslian/QUICBench-Node}), permitindo replicação e extensão das matrizes experimentais.
+As três contribuições anunciadas na Introdução - revisão rápida da literatura, artefato reprodutível e evidências empíricas - foram entregues. Os resultados acrescentam a elas dois aprendizados metodológicos. O primeiro é a constatação de que, no arranjo testado, o gerador de carga QUIC limita a medida de HTTP/3 a ponto de mascarar o efeito do perfil de rede, o que torna a homogeneidade das ferramentas de carga um requisito metodológico, e não um detalhe. O segundo é a evidência de que a assimetria de topologia (HTTP/1.1 direto versus HTTP/2 e HTTP/3 via proxy) precisa ser controlada no desenho de qualquer comparação entre versões do HTTP em APIs Node.js. O código-fonte e os roteiros operacionais estão publicados em repositório aberto (\url{https://github.com/mendeslian/QUICBench-Node}), permitindo replicação e extensão das matrizes experimentais.
 
 \section{Limitações}
 
 A limitação principal é a restrição do desenho experimental: a matriz ideal testou variação de payload e concorrência apenas em rede clean, enquanto a submatriz degradada se ateve a GET /bench/ping com 50 usuários virtuais em quatro perfis de rede. As duas campanhas não se cruzam. Além disso, HTTP/1.1 foi medido com acesso direto à API, enquanto HTTP/2 e HTTP/3 passaram pelo NGINX; esse isolamento de topologia faz com que toda comparação entre HTTP/1.1 e os demais confunda efeito de protocolo com efeito de proxy. O cliente QUIC que mediu HTTP/3 difere do k6 em paralelismo efetivo, o que distorce a latência e a vazão relativos ao HTTP/2 no mesmo proxy. Por fim, os testes rodaram na mesma estação local em Docker, sem replicação em outro hardware. As respostas às questões de pesquisa, em especial QP3, refletem esse arranjo específico, não a viabilidade de HTTP/3 em produção.
+
+A revisão rápida da literatura foi feita por um único aluno, sem segundo revisor na triagem, na leitura integral, na avaliação de qualidade e na extração. Cartaxo, Pinto e Soares (2020) admitem esse arranjo em revisão rápida, com risco de viés de seleção.
 
 \section{Considerações finais}
 
