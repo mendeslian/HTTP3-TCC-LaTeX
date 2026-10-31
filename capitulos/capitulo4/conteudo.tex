@@ -216,7 +216,7 @@ A Tabela 11 relaciona as métricas da Seção 2.8 às fontes de medição dispon
 \hline
 \textbf{Métrica} & \textbf{Fonte primária} & \textbf{Fonte complementar} \\
 \hline
-Latência & k6 (H/1.1, H/2); cliente QUIC Logs (H/3) (\$request\_time) & NGINX \\
+Latência & k6 (H/1.1, H/2); cliente QUIC (H/3, time\_total) & NGINX (\$request\_time) \\
 Tempo de resposta & k6; cliente QUIC (H/3) & Pino (durationMs) \\
 TTFB & k6; cliente QUIC (H/3) & Server-Timing; NGINX \\
 \textit{Throughput} & k6; cliente QUIC (H/3) & Bytes em /bench/payload e /bench/echo \\
