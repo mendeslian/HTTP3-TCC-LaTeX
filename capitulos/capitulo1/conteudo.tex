@@ -1,4 +1,4 @@
-﻿\chapter{INTRODUÇÃO}
+﻿\chapter{INTRODUÇÃO}\label{cap:intro}
 
 \section{Contextualização}
 
@@ -20,9 +20,9 @@ Logo, este trabalho visa investigar o problema de incorporação do HTTP/3, sobr
 
 O HTTP persiste como o principal canal de comunicação na \textit{web}, de modo que o HTTP/3 sobre QUIC representa um avanço adicional no que tange a desempenho e a resiliência em redes adversas (PERNA et al., 2022; QUIC Working Group - IETF, 2021). No Node.js, entretanto, essa evolução ainda carece de meios alternativos de viabilização da integração. Surge, assim, a motivação do presente trabalho, a qual advém da necessidade de examinar justamente essa transição em APIs REST - um cenário típico de microsserviços - no qual definir quando e como expor o HTTP/3 sem reescrever o \textit{backend} representa um desafio prático para as equipes de desenvolvimento.
 
-\section{Objetivo}
+\section{Objetivo}\label{sec:objetivo}
 
-Objetiva-se, pois, com este trabalho, examinar a viabilidade, os desafios, o desempenho comparativo e as estratégias de integração do HTTP/3 em APIs REST baseadas em Node.js, articulando fundamentação teórica, revisão rápida da literatura e, especialmente, o estudo de caso experimental. Nele, foi desenvolvida uma API orientada a benchmarks, exposta a HTTP/1.1, HTTP/2 e HTTP/3 com terminação QUIC em proxy reverso NGINX; cujos resultados serão analisados nos Capítulos 4 e 5.
+Objetiva-se, pois, com este trabalho, examinar a viabilidade, os desafios, o desempenho comparativo e as estratégias de integração do HTTP/3 em APIs REST baseadas em Node.js, articulando fundamentação teórica, revisão rápida da literatura e, especialmente, o estudo de caso experimental. Nele, foi desenvolvida uma API orientada a benchmarks, exposta a HTTP/1.1, HTTP/2 e HTTP/3 com terminação QUIC em proxy reverso NGINX; cujos resultados serão analisados nos Capítulos~\ref{cap:metodologia} e~\ref{cap:resultados}.
 
 \subsection{Objetivos específicos}
 
@@ -35,31 +35,6 @@ Com base no objetivo geral, este trabalho persegue os seguintes objetivos espec�
 \item construir e disponibilizar um artefato reprodutível que materialize estratégias de integração em ambientes já consolidados.
 \end{enumerate}
 
-\section{Metodologia}
-
-Este trabalho se baseia em uma abordagem experimental, através da combinação de uma revisão teórica e da validação prática. A Figura 1 resume as etapas executadas.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.92\textwidth]{assets/figuras/fig1.png}
-\caption{Fluxo metodológico do trabalho}
-\fonte{Fonte: elaborado pelo autor}
-\end{figure}
-
-No que tange ao eixo teórico, o Capítulo 2 busca apresentar a fundamentação sobre HTTP, QUIC e HTTP/3, Node.js, APIs REST e métricas de desempenho; enquanto o Capítulo 3 conduz a revisão rápida da literatura (KITCHENHAM; CHARTERS, 2007; CARTAXO; PINTO; SOARES, 2020), com protocolo de busca, critérios de inclusão e síntese temática.
-
-Já em relação ao eixo prático, foi implementado um artefato reprodutível (API Node.js, NGINX, Docker e roteiros de coleta) descrito no Capítulo 4. O HTTP/3 é exposto na borda por proxy reverso, pois o \textit{runtime} não oferece suporte nativo estável ao protocolo (KOCH; FALOWO; ELROD, 2024).
-
-As campanhas de carga utilizam k6 para HTTP/1.1 e HTTP/2 e cliente QUIC dedicado para HTTP/3, em matriz clean (variação de payload e concorrência) e submatriz com tc netem (perfis de latência e perda). Cada célula reportada resume dez réplicas pela mediana e pelo intervalo interquartil (IQR). A comparação entre HTTP/2 e HTTP/3, em cada condição, usa o teste de Mann-Whitney e o delta de Cliff. A análise comparativa e as ameaças à validade estão representadas no Capítulo 5.
-
-\section{Justificativa}
-
-Tendo-se em vista que a evolução dos protocolos \textit{web} exige que equipes de desenvolvimento compreendam como integrar HTTP/3 em stacks já consolidadas, sem reescrever aplicações inteiras, este trabalho se justifica pela reunião de evidências bibliográficas e empíricas acerca do desempenho e da migração em APIs REST (PERNA et al., 2022; TRIPATHI; MIRAZ; JOSHI, 2023; MUÑOZ et al., 2025), além de disponibilizar artefato e roteiros reprodutíveis que apoiam decisões técnicas e pesquisas posteriores sobre Node.js e proxy reverso. 
-
-\section{Contribuições}
-
-Este trabalho visa contribuir com uma revisão rápida da literatura sobre HTTP/3, QUIC e APIs REST, destacando lacunas quanto a Node.js e proxy reverso, mas também com um artefato de software reprodutível (API, infraestrutura Docker/NGINX e roteiros de benchmark), o qual permite investigar empiricamente essa lacuna. Também, contribui com a apresentação de evidências empíricas comparativas entre HTTP/1.1, HTTP/2 e HTTP/3, com agregação estatística e com a discussão de limitações metodológicas, disponibilizadas em repositório aberto para replicação.
-
 \section{Questões de pesquisa}
 
 Com base no problema investigado, este trabalho busca responder às seguintes questões de pesquisa:
@@ -71,7 +46,32 @@ Com base no problema investigado, este trabalho busca responder às seguintes qu
 \item quais estratégias podem ser utilizadas para viabilizar a integração do HTTP/3 em ambientes já consolidados?
 \end{enumerate}
 
-\section{Delimitação do Estudo}
+\section{Metodologia}
+
+Este trabalho se baseia em uma abordagem experimental, através da combinação de uma revisão teórica e da validação prática. A Figura~\ref{fig:fluxo-metodologico} resume as etapas executadas.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{assets/figuras/fig1.png}
+\caption{Fluxo metodológico do trabalho}\label{fig:fluxo-metodologico}
+\fonte{Fonte: elaborado pelo autor}
+\end{figure}
+
+No que tange ao eixo teórico, o Capítulo~\ref{cap:fundamentacao} busca apresentar a fundamentação sobre HTTP, QUIC e HTTP/3, Node.js, APIs REST e métricas de desempenho; enquanto o Capítulo~\ref{cap:revisao} conduz a revisão rápida da literatura (KITCHENHAM; CHARTERS, 2007; CARTAXO; PINTO; SOARES, 2020), com protocolo de busca, critérios de inclusão e síntese temática.
+
+Já em relação ao eixo prático, foi implementado um artefato reprodutível (API Node.js, NGINX, Docker e roteiros de coleta) descrito no Capítulo~\ref{cap:metodologia}. O HTTP/3 é exposto na borda por proxy reverso, pois o \textit{runtime} não oferece suporte nativo estável ao protocolo (KOCH; FALOWO; ELROD, 2024).
+
+As campanhas de carga utilizam k6 para HTTP/1.1 e HTTP/2 e cliente QUIC dedicado para HTTP/3, em matriz clean (variação de payload e concorrência) e submatriz com tc netem (perfis de latência e perda). Cada célula reportada resume dez réplicas pela mediana e pelo intervalo interquartil (IQR). A comparação entre HTTP/2 e HTTP/3, em cada condição, usa o teste de Mann-Whitney e o delta de Cliff. A análise comparativa e as ameaças à validade estão representadas no Capítulo~\ref{cap:resultados}.
+
+\section{Justificativa}
+
+Tendo-se em vista que a evolução dos protocolos \textit{web} exige que equipes de desenvolvimento compreendam como integrar HTTP/3 em stacks já consolidadas, sem reescrever aplicações inteiras, este trabalho se justifica pela reunião de evidências bibliográficas e empíricas acerca do desempenho e da migração em APIs REST (PERNA et al., 2022; TRIPATHI; MIRAZ; JOSHI, 2023; MUÑOZ et al., 2025), além de disponibilizar artefato e roteiros reprodutíveis que apoiam decisões técnicas e pesquisas posteriores sobre Node.js e proxy reverso. 
+
+\section{Contribuições}
+
+Este trabalho visa contribuir com uma revisão rápida da literatura sobre HTTP/3, QUIC e APIs REST, destacando lacunas quanto a Node.js e proxy reverso, mas também com um artefato de software reprodutível (API, infraestrutura Docker/NGINX e roteiros de benchmark), o qual permite investigar empiricamente essa lacuna. Também, contribui com a apresentação de evidências empíricas comparativas entre HTTP/1.1, HTTP/2 e HTTP/3, com agregação estatística e com a discussão de limitações metodológicas, disponibilizadas em repositório aberto para replicação.
+
+\section{Delimitação do Estudo}\label{sec:delimitacao}
 
 Este estudo se concentra na análise da viabilidade de utilização do protocolo HTTP/3 em aplicações \textit{backend} desenvolvidas com Node.js, com enfoque específico em APIs REST e em testes de desempenho. A investigação limita-se à avaliação de métricas como latência, tempo de resposta, TTFB, taxa de transferência e comportamento sob carga.
 
