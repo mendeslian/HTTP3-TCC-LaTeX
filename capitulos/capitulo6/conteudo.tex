@@ -22,8 +22,14 @@ A limitação principal é a restrição do desenho experimental: a matriz ideal
 
 A revisão rápida da literatura foi feita por um único aluno, sem segundo revisor na triagem, na leitura integral, na avaliação de qualidade e na extração. Cartaxo, Pinto e Soares (2020) admitem esse arranjo em revisão rápida, com risco de viés de seleção.
 
-\section{Considerações finais}
+\section{Trabalhos futuros}
 
-Os resultados responderam às quatro questões de pesquisa em um arranjo específico de laboratório, não em ambiente de produção. O código-fonte aberto e os roteiros disponibilizados permitem que outros pesquisadores validem ou estendam o experimento, o que é o principal ganho desta rodada. O que fica pendente é medir HTTP/1.1 pelo mesmo NGINX dos demais protocolos, equiparar os geradores de carga e sair de localhost todos passos que o artefato já foi projetado para suportar.
+O artefato publicado foi projetado para suportar três medições que esta rodada não executou.
+
+\begin{enumerate}[label=\alph*)]
+\item Medir HTTP/1.1 pelo mesmo NGINX usado em HTTP/2 e HTTP/3. No arranjo atual, HTTP/1.1 acessa a API direto, e a comparação mistura efeito de protocolo com efeito de proxy.
+\item Equiparar os geradores de carga. HTTP/3 foi medido por um cliente QUIC em contêiner, distinto do k6, o que distorce a latência e a vazão relativas ao HTTP/2 no mesmo proxy.
+\item Sair de localhost. As duas campanhas rodaram na mesma estação em Docker, e teste nesse ambiente não reproduz a Internet pública.
+\end{enumerate}
 
 
