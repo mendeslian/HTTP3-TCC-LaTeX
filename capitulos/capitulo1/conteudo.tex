@@ -50,7 +50,7 @@ No que tange ao eixo teórico, o Capítulo 2 busca apresentar a fundamentação 
 
 Já em relação ao eixo prático, foi implementado um artefato reprodutível (API Node.js, NGINX, Docker e roteiros de coleta) descrito no Capítulo 4. O HTTP/3 é exposto na borda por proxy reverso, pois o \textit{runtime} não oferece suporte nativo estável ao protocolo (KOCH; FALOWO; ELROD, 2024).
 
-As campanhas de carga utilizam k6 para HTTP/1.1 e HTTP/2 e cliente QUIC dedicado para HTTP/3, em matriz clean (variação de payload e concorrência) e submatriz com tc netem (perfis de latência e perda). Cada célula reportada resume dez réplicas pela mediana e pelo intervalo interquartil (IQR). A análise comparativa e as ameaças à validade estão representadas no Capítulo 5.
+As campanhas de carga utilizam k6 para HTTP/1.1 e HTTP/2 e cliente QUIC dedicado para HTTP/3, em matriz clean (variação de payload e concorrência) e submatriz com tc netem (perfis de latência e perda). Cada célula reportada resume dez réplicas pela mediana e pelo intervalo interquartil (IQR). A comparação entre HTTP/2 e HTTP/3, em cada condição, usa o teste de Mann-Whitney e o delta de Cliff. A análise comparativa e as ameaças à validade estão representadas no Capítulo 5.
 
 \section{Justificativa}
 
