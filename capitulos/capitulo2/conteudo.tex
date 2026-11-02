@@ -4,7 +4,7 @@
 
 O protocolo HTTP surgiu como parte da World Wide Web, com o objetivo inicial de transportar documentos de hipertexto. Desde então, passou da versão 0.9 aos padrões HTTP/1.1, HTTP/2 e HTTP/3, voltados sobretudo a desempenho na transferência de conteúdo.
 
-A versão 0.9 possuía funcionamento muito mais simples: transferia documentos HTML por meio do método GET, sem cabeçalhos. A versão 1.0 introduziu os cabeçalhos, a identificação do tipo de conteúdo e novos métodos, como POST e HEAD, permitindo transferir outros tipos de dados além do hipertexto. Já a versão 1.1 adotou conexões persistentes como comportamento usual: ao reutilizar a mesma conexão entre requisições, reduziu o custo de abertura de novas conexões.
+A versão 0.9 possuía funcionamento muito mais simples: transferia documentos~\allowbreak HTML por meio do método GET, sem cabeçalhos. A versão 1.0 introduziu os cabeçalhos, a identificação do tipo de conteúdo e novos métodos, como POST e HEAD, permitindo transferir outros tipos de dados além do hipertexto. Já a versão 1.1 adotou conexões persistentes como comportamento usual: ao reutilizar a mesma conexão entre requisições, reduziu o custo de abertura de novas conexões.
 
 Do ponto de vista arquitetural, o HTTP opera sobre o modelo \textit{request}\textit{-response}, por meio do qual o cliente envia uma requisição e aguarda uma resposta do servidor. Na pilha de protocolos da internet, situa-se este na camada de aplicação, utilizando-se do \textit{Transmission}\textit{ }\textit{Control}\textit{ }\textit{Protocol}\textit{ }(TCP) como o protocolo de transporte e, na generalidade dos serviços atuais, o \textit{Transport}\textit{ }\textit{Layer}\textit{ Security} (TLS) para criptografia, configuração conhecida como HTTPS. Essa combinação se tornou o padrão para comunicação \textit{web} segura e continua sendo a base sobre a qual as versões mais recentes do protocolo evoluíram (PERNA et al., 2022).
 
@@ -80,7 +80,7 @@ A avaliação comparativa de protocolos HTTP exige a definição clara de métri
 \item latência: intervalo entre o envio de uma requisição e o recebimento da resposta completa, do ponto de vista do cliente;
 \item tempo de resposta: duração total do ciclo requisição-resposta, incluindo o processamento no servidor. Como as ferramentas de carga medem ambos pela mesma grandeza (duração da requisição), latência e tempo de resposta são reportados juntos no Capítulo~\ref{cap:resultados}, distinguindo-se apenas do TTFB;
 \item time to First Byte (TTFB): tempo até o recebimento do primeiro byte da resposta, que reflete o estabelecimento de conexão (quando há) e o início do processamento, sem incluir a transferência do corpo;
-\item taxa de transferência (throughput): volume de dados transferidos por unidade de tempo;
+\item taxa de transferência (throughput): volume de dados transferidos por unidade de tempo\allowbreak{};
 \item requisições por segundo: capacidade do sistema sob carga, medindo escalabilidade e estabilidade.
 \end{enumerate}
 

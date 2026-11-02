@@ -44,7 +44,7 @@ O ambiente de execução foi construído sobre Node.js (versão $\geq$ 18), exec
 
 \begin{enumerate}[label=\alph*)]
 \item modo desenvolvimento e validação (host): o contêiner NGINX (docker-compose.yml, infra/nginx/nginx.conf) termina HTTP/2 e HTTP/3 na porta 8443 e encaminha requisições ao processo Node.js em execução no host (host.docker.internal:3000). O script npm run dev:nginx inicia proxy e API em paralelo; npm run dev executa apenas a API para baseline HTTP/1.1. Esse modo facilita validação manual com curl e desenvolvimento iterativo;
-\item modo campanha de benchmark (contêineres):  para medições com rede degradada, API e NGINX executam como contêineres na rede Docker bench (docker-compose.bench.yml, infra/nginx/nginx.bench.conf), com upstream api:3000. Essa topologia é necessária para aplicar tc netem de forma simétrica nos três protocolos (TCP e UDP), conforme a Seção~\ref{sec:rede-degradada-desenho}.
+\item modo campanha de benchmark (contêineres):  para medições com rede degradada, API e NGINX executam como contêineres na rede Docker bench (\breaktok{docker-compose.bench.yml}, \breaktok{infra/nginx/nginx.bench.conf}), com upstream api:3000. Essa topologia é necessária para aplicar tc netem de forma simétrica nos três protocolos (TCP e UDP), conforme a Seção~\ref{sec:rede-degradada-desenho}.
 \end{enumerate}
 
 As duas campanhas reportadas neste trabalho utilizaram exclusivamente o modo campanha. O modo \textit{host} permanece documentado no repositório para reprodução dos caminhos de protocolo fora do laboratório \textit{bench}.
@@ -60,10 +60,10 @@ Os principais elementos da configuração incluem:
 \item HTTP/3 (QUIC): listen 8443 quic reuseport com UDP na mesma porta;
 \item HTTP/2: habilitado na mesma porta TLS para fallback e comparação;
 \item upstream HTTP/1.1: proxy\_pass para a API Node.js na porta 3000;
-\item logs estruturados: formato personalizado registrando \$request\_time e \$upstream\_response\_time para correlação com métricas da aplicação.
+\item logs estruturados: formato personalizado registrando \$\breaktok{request_time} e \$\breaktok{upstream_response_time} para correlação com métricas da aplicação.
 \end{enumerate}
 
-No modo campanha (nginx.bench.conf), o upstream node\_api define o servidor api:3000 e o bloco server concentra escuta TLS/QUIC e encaminhamento com proxy\_pass http://node\_api, conforme a Listagem 4.1.
+No modo campanha (\breaktok{nginx.bench.conf}), o upstream \breaktok{node_api} define o servidor api:3000 e o bloco server concentra escuta TLS/QUIC e encaminhamento com \breaktok{proxy_pass http://node_api}, conforme a Listagem 4.1.
 
 \par\noindent
 \begin{minipage}{\linewidth}
@@ -107,7 +107,7 @@ Em linha com o objetivo do trabalho (Seção~\ref{sec:objetivo}) e com as métri
 
 Os perfis de carga adotados são 10, 50 e 100 usuários virtuais, com duração de 60 s por execução e ramp-up de 10 s, equilibrando a viabilidade em laboratório local com uma faixa de concorrência inspirada em estudos que também variam carga e \textit{payload} em APIs REST (ZAHRA; ARDIANSYAH, 2026).
 
-Os \textit{scripts} estão organizados em benchmarks/: cenários k6 em benchmarks/k6/, cliente QUIC para HTTP/3 em benchmarks/http3/, orquestração em benchmarks/scripts/ e agregação estatística em benchmarks/scripts/aggregate.ts. Os comandos npm run bench:run (matriz em rede ideal), npm run bench:degraded (rede degradada) e npm run bench:agg reproduzem a coleta e a consolidação dos resultados em benchmarks/results/ A validação manual dos três protocolos pode ser feita com curl conforme documentado no repositório.
+Os \textit{scripts} estão organizados em \breaktok{benchmarks/}: cenários k6 em \breaktok{benchmarks/k6/}, cliente QUIC para HTTP/3 em \breaktok{benchmarks/http3/}, orquestração em \breaktok{benchmarks/scripts/} e agregação estatística em \breaktok{benchmarks/scripts/aggregate.ts}. Os comandos \breaktok{npm run bench:run} (matriz em rede ideal), \breaktok{npm run bench:degraded} (rede degradada) e \breaktok{npm run bench:agg} reproduzem a coleta e a consolidação dos resultados em \breaktok{benchmarks/results/}. A validação manual dos três protocolos pode ser feita com curl conforme documentado no repositório.
 
 \subsection{Desafios técnicos e mitigações (QP2)}\label{sec:desafios-qp2}
 
@@ -179,7 +179,9 @@ Os payloads de /bench/payload/:size são pré-computados em startup da aplicaç�
 
 Parâmetros operacionais da API são controlados por variáveis de ambiente, validadas em startup. A Tabela~\ref{tab:variaveis-ambiente} resume as variáveis relevantes para os experimentos.
 
-A variável BENCHMARK\_MODE foi introduzida para evitar que o rate limiter (100 re-quisições por minuto, por padrão) distorça testes de carga sob concorrência elevada. Quando ativada, o limitador é ignorado, permitindo medições de capacidade e estabilidade sob carga.
+\begin{sloppypar}
+A variável BENCHMARK\_MODE foi introduzida para evitar que o rate limiter (100 requisições por minuto, por padrão) distorça testes de carga sob concorrência elevada. Quando ativada, o limitador é ignorado, permitindo medições de capacidade e estabilidade sob carga.
+\end{sloppypar}
 
 \section{Observabilidade}
 

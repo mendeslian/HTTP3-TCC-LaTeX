@@ -7,13 +7,13 @@
 \usepackage{multirow}
 \usepackage{float}
 \usepackage{caption}
+\usepackage{xurl}
 \usepackage{hyperref}
 \usepackage{indentfirst}
 \usepackage{setspace}
 \usepackage{titlesec}
 \usepackage{tocloft}
 \usepackage{enumitem}
-\usepackage{url}
 \usepackage{chngcntr}
 \usepackage{fancyhdr}
 \usepackage{listings}
@@ -59,7 +59,7 @@
 \renewcommand{\cftfigaftersnum}{~--~}
 \renewcommand{\cfttabaftersnum}{~--~}
 \setlength{\cftfignumwidth}{4.5em}
-\setlength{\cfttabnumwidth}{4.5em}
+\setlength{\cfttabnumwidth}{5.2em}
 \setlength{\cftfigindent}{0pt}
 \setlength{\cfttabindent}{0pt}
 
@@ -72,3 +72,5 @@
 \pagestyle{plain}
 
 \newcommand{\fonte}[1]{\par\smallskip{\small #1}\par}
+
+\DeclareRobustCommand{\breaktok}[1]{\begingroup\urlstyle{same}\nolinkurl{#1}\endgroup}

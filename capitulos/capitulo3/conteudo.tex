@@ -22,7 +22,9 @@ A \textit{string} de busca foi construída a partir de três blocos temáticos, 
 
 A string completa utilizada como referência foi:
 
-("HTTP/3"OR "HTTP 3"OR HTTP3 OR QUIC) AND ("REST"OR "RESTful"OR"web API"OR "Application Programming Interface") AND (performance OR latency OR migration OR implementation OR "Node.js"OR "Node js")
+\begin{sloppypar}
+\breaktok{("HTTP/3"OR "HTTP 3"OR HTTP3 OR QUIC) AND ("REST"OR "RESTful"OR"web API"OR "Application Programming Interface") AND (performance OR latency OR migration OR implementation OR "Node.js"OR "Node js")}
+\end{sloppypar}
 
 Foram aplicados filtros de publicação entre 2018 e 2026, período que abrange a consolidação do QUIC e do HTTP/3 como padrões IETF. A Tabela~\ref{tab:string-busca} apresenta a adaptação da \textit{string} conforme a sintaxe exigida por cada base de dados. As buscas foram executadas em 29 de junho de 2026.
 
@@ -59,7 +61,7 @@ Os critérios de seleção foram definidos antes da triagem dos estudos, conform
 
 Critérios de inclusão:
 \begin{enumerate}[label=\alph*)]
-\item artigos completos, extended abstracts de conferências ou normas técnicas (RFCs) relevan-tes, com revisão por pares ou publicação em organismos de padronização;
+\item artigos completos, extended abstracts de conferências ou normas técnicas (RFCs) relevantes, com revisão por pares ou publicação em organismos de padronização;
 \item estudos que abordem HTTP/3, QUIC, desempenho, latência, migração ou implementação em APIs, serviços web ou arquiteturas de backend;
 \item publicações em inglês ou português;
 \item período de publicação entre 2018 e 2026;
@@ -193,7 +195,9 @@ Esta seção apresenta os resultados da revisão, organizados em base normativa 
 
 \subsection{Desempenho e latência}
 
+\begin{sloppypar}
 No eixo de desempenho, predominam estudos de medição (TRIPATHI; MIRAZ; JOSHI, 2023; ZAHRA; ARDIANSYAH, 2026; YU; BENSON, 2021; PERNA et al., 2022) e revisões que sintetizam limitações (ZHANG et al., 2025). Tripathi, Miraz e Joshi (2023) compararam latência de APIs RESTful em HTTP/3 e HTTP/1.1, observando ganhos de eficiência de comunicação. Zhang et al. (2025) reúnem mecanismos de melhoria e restrições de desempenho. Zahra e Ardiansyah (2026) evidenciam a dependência de contexto: sob rede severamente degradada, relatam redução de latência de até 31,2\% com HTTP/3 frente ao HTTP/2, em especial em operações GET com alta concorrência, enquanto em condições ideais, com alta concorrência e payload médio, o HTTP/2 pode superar o HTTP/3 --- resultado que orienta a matriz experimental com netem e variação de payload neste TCC.
+\end{sloppypar}
 
 \subsection{Adoção e implementação}
 

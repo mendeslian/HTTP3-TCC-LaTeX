@@ -10,13 +10,13 @@ O conjunto de dados reportado neste capítulo compreende duas campanhas. A subma
 
 As duas campanhas foram executadas na mesma estação de trabalho com Windows 11 Pro (build 10.0.26200), processador AMD Ryzen 5 5600 com seis núcleos físicos e doze threads, cerca de 16 GB de RAM, arquitetura x86\_64. Ferramentas no host: k6 v2.2.0, Docker Desktop 29.4.2 (backend WSL2) e Node.js v22.13.0; API e NGINX em contêineres node:20-alpine na rede bench (docker-compose.bench.yml). Em ambas, k6 no host mediu HTTP/1.1 e HTTP/2, e o cliente QUIC (curl-http3 em contêiner) mediu HTTP/3, conforme benchmarks/README.md. A submatriz degradada não aplicou intervalo entre réplicas (cooldown\_sec = 0); a matriz ideal usou três minutos entre réplicas. Os p95 de /bench/ping com 50 VUs em clean nas duas campanhas são próximos (Seções~\ref{sec:submatriz-clean} e~\ref{sec:matriz-ideal}), com diferença explicável pela duração do teste (30 s versus 60 s).
 
-As cinco métricas da Seção~\ref{sec:metricas} foram registradas em cada execução (http\_req\_duration para latência e tempo de resposta, http\_req\_waiting para TTFB, data\_received\_rate para taxa de transferência e http\_reqs\_rate para requisições por segundo). As tabelas principais deste capítulo destacam o percentil 95 de duração e a taxa de requisições; a Tabela~\ref{tab:ttfb-throughput-ideal} complementa a matriz ideal com TTFB e throughput de recepção agregados a partir do mesmo summary.csv. O cliente HTTP/3 não exporta data\_received\_rate no esquema normalizado, de modo que células correspondentes aparecem como ``---''.
+As cinco métricas da Seção~\ref{sec:metricas} foram registradas em cada execução (\breaktok{http_req_duration} para latência e tempo de resposta, \breaktok{http_req_waiting} para TTFB, \breaktok{data_received_rate} para taxa de transferência e \breaktok{http_reqs_rate} para requisições por segundo). As tabelas principais deste capítulo destacam o percentil 95 de duração e a taxa de requisições; a Tabela~\ref{tab:ttfb-throughput-ideal} complementa a matriz ideal com TTFB e throughput de recepção agregados a partir do mesmo \breaktok{summary.csv}. O cliente HTTP/3 não exporta \breaktok{data_received_rate} no esquema normalizado, de modo que células correspondentes aparecem como ``---''.
 
 \section{Submatriz degradada: perfil de controle (clean)}\label{sec:submatriz-clean}
 
 Esta seção e a seguinte se referem exclusivamente à campanha de rede degradada (2026-10-15\_10-13-06), com 30 s por execução e sem intervalo entre réplicas. O perfil clean funciona como controle, sem netem; a matriz ideal, com variação de payload e de concorrência, é tratada separadamente na Seção~\ref{sec:matriz-ideal}.
 
-A Tabela~\ref{tab:submatriz-clean} resume a mediana do percentil 95 do tempo de requisição (http\_req\_duration\_p95, em milissegundos) e a mediana da taxa de requisições por segundo (http\_reqs\_rate), com dez réplicas por protocolo. Sob netem, o IQR entre réplicas no caminho HTTP/3 supera o de HTTP/1.1 e HTTP/2, o que é coerente com o uso de cliente QUIC em contêiner Docker (Seção~\ref{sec:ameacas-validade})
+A Tabela~\ref{tab:submatriz-clean} resume a mediana do percentil 95 do tempo de requisição (\breaktok{http_req_duration_p95}, em milissegundos) e a mediana da taxa de requisições por segundo (\breaktok{http_reqs_rate}), com dez réplicas por protocolo. Sob netem, o IQR entre réplicas no caminho HTTP/3 supera o de HTTP/1.1 e HTTP/2, o que é coerente com o uso de cliente QUIC em contêiner Docker (Seção~\ref{sec:ameacas-validade})
 
 
 \begin{table}[H]
@@ -110,7 +110,7 @@ Na submatriz degradada, com /bench/ping e corpo de resposta mínimo, a mediana d
 
 \begin{table}[H]
 \centering
-\caption{Submatriz degradada - TTFB mediano (http\_req\_waiting\_p95), /bench/ping, 50 VUs (n = 10)}\label{tab:ttfb-submatriz}
+\caption[Submatriz degradada - TTFB mediano, /bench/ping, 50 VUs (n = 10)]{Submatriz degradada - TTFB mediano (\breaktok{http_req_waiting_p95}), /bench/ping, 50 VUs (n = 10)}\label{tab:ttfb-submatriz}
 \small
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{42mm}>{\raggedright\arraybackslash}p{32mm}>{\raggedright\arraybackslash}p{32mm}>{\raggedright\arraybackslash}p{32mm}@{}} \hline
@@ -129,7 +129,7 @@ A comparação entre HTTP/2 e HTTP/3 nesses quatro perfis, com Mann-Whitney e de
 
 \section{Variação de payload e níveis de concorrência}\label{sec:matriz-ideal}
 
-A matriz de payload e de concorrência em rede ideal (clean) foi executada conforme o desenho do Capítulo~\ref{cap:metodologia}: GET /bench/ping com 10, 50 e 100 VUs; GET /bench/payload/:size (1 KB, 100 KB e 1 MB) e POST /bench/echo (corpo de 100 KB) com 50 VUs; três protocolos por célula; 60 s de duração e ramp-up de 10 s; 10 réplicas por célula (21 células, 210 execuções), com intervalo de três minutos entre réplicas. A campanha foi agregada em benchmarks/results/2026-10-01\_08-38-06/, e todas as execuções registraram http\_req\_failed\_rate nulo. O ambiente de coleta é o mesmo da submatriz degradada (Seção~\ref{sec:protocolo-coleta}); diferem a duração do teste, o intervalo entre réplicas e o desenho experimental.
+A matriz de payload e de concorrência em rede ideal (clean) foi executada conforme o desenho do Capítulo~\ref{cap:metodologia}: GET /bench/ping com 10, 50 e 100 VUs; GET /bench/payload/:size (1 KB, 100 KB e 1 MB) e POST /bench/echo (corpo de 100 KB) com 50 VUs; três protocolos por célula; 60 s de duração e ramp-up de 10 s; 10 réplicas por célula (21 células, 210 execuções), com intervalo de três minutos entre réplicas. A campanha foi agregada em \breaktok{benchmarks/results/2026-10-01_08-38-06/}, e todas as execuções registraram \breaktok{http_req_failed_rate} nulo. O ambiente de coleta é o mesmo da submatriz degradada (Seção~\ref{sec:protocolo-coleta}); diferem a duração do teste, o intervalo entre réplicas e o desenho experimental.
 
 A Tabela~\ref{tab:ping-matriz-ideal} resume a variação de concorrência em /bench/ping. A Tabela~\ref{tab:payload-echo} resume payload e echo com carga fixa de 50 VUs. Em ambas, reportam-se a mediana do percentil 95 do tempo de requisição, o IQR entre réplicas e a mediana da taxa de requisições por segundo, no mesmo formato das demais tabelas deste capítulo.
 
@@ -193,14 +193,14 @@ A Figura~\ref{fig:p95-concorrencia} ilustra o crescimento do p95 mediano em /ben
 \fonte{Fonte: elaborado pelo autor (Tabela~\ref{tab:ping-matriz-ideal}).}
 \end{figure}
 
-A Tabela~\ref{tab:ttfb-throughput-ideal} reporta TTFB (http\_req\_waiting\_p95) e taxa de recepção (data\_received\_rate) na mesma campanha. Em transferências volumosas (GET 1 MB), o TTFB permanece baixo em HTTP/1.1 e HTTP/2 enquanto o tempo total de resposta cresce (Tabela~\ref{tab:payload-echo}), separando o custo de estabelecimento e início de resposta do tempo de transferência do corpo.
+A Tabela~\ref{tab:ttfb-throughput-ideal} reporta TTFB (\breaktok{http_req_waiting_p95}) e taxa de recepção (\breaktok{data_received_rate}) na mesma campanha. Em transferências volumosas (GET 1 MB), o TTFB permanece baixo em HTTP/1.1 e HTTP/2 enquanto o tempo total de resposta cresce (Tabela~\ref{tab:payload-echo}), separando o custo de estabelecimento e início de resposta do tempo de transferência do corpo.
 
 Na matriz ideal, HTTP/1.1 direto à API registrou menores p95 e maiores taxas de requisição que os caminhos via NGINX. Entre HTTP/2 e HTTP/3, a Tabela~\ref{tab:mann-whitney-ideal} compara as dez réplicas de cada condição pelo teste de Mann-Whitney e pelo delta de Cliff. A latência cresce com a concorrência e com o tamanho do corpo, e a distância entre HTTP/3 e os demais aumenta em transferências volumosas (p95 mediano de 2779,6 ms no GET de 1 MB). Essas diferenças devem ser lidas à luz da assimetria de topologia e do cliente QUIC (Seção~\ref{sec:ameacas-validade}); a interpretação detalhada consta na Seção~\ref{sec:analise-discussao}.
 
 
 \begin{table}[H]
 \centering
-\caption{Matriz ideal - TTFB e throughput de recepção (n = 10 réplicas, campanha 2026-10-01\_08-38-06)}\label{tab:ttfb-throughput-ideal}
+\caption[Matriz ideal - TTFB e throughput de recepção (n = 10 réplicas)]{Matriz ideal - TTFB e throughput de recepção (n = 10 réplicas, campanha \breaktok{2026-10-01_08-38-06})}\label{tab:ttfb-throughput-ideal}
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{34mm}>{\raggedright\arraybackslash}p{22mm}>{\raggedright\arraybackslash}p{28mm}>{\raggedright\arraybackslash}p{18mm}>{\raggedright\arraybackslash}p{28mm}@{}} \hline
@@ -241,7 +241,7 @@ HTTP/2 e HTTP/3 foram comparados em cada condição, com as dez réplicas de cad
 
 \begin{table}[H]
 \centering
-\caption{Submatriz degradada - Mann-Whitney e delta de Cliff, HTTP/2 contra HTTP/3 (/bench/ping, 50 VUs, n = 10)}\label{tab:mann-whitney-submatriz}
+\caption[Submatriz degradada - Mann-Whitney e delta de Cliff, HTTP/2 contra HTTP/3]{Submatriz degradada - Mann-Whitney e delta de Cliff, HTTP/2 contra HTTP/3 (/bench/ping, 50 VUs, n = 10)}\label{tab:mann-whitney-submatriz}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{36mm}>{\centering\arraybackslash}p{18mm}>{\centering\arraybackslash}p{28mm}>{\centering\arraybackslash}p{20mm}>{\centering\arraybackslash}p{28mm}@{}} \hline
@@ -317,13 +317,15 @@ A submatriz degradada restringiu-se a GET /bench/ping com 50 VUs e quatro perfis
 
 A submatriz degradada e a matriz ideal foram executadas na mesma estação (Seção~\ref{sec:protocolo-coleta}), sem replicação em outro hardware ou sistema operacional, o que limita a generalização dos achados para outros ambientes de coleta. As comparações dentro de cada campanha devem ser lidas nesse contexto; diferenças pontuais entre campanhas podem refletir duração do teste e intervalo entre réplicas, além dos protocolos ou cenários.
 
+\begin{sloppypar}
 Nota-se, também, uma assimetria topológica no experimento, visto que o HTTP/1.1 foi exercitado sem NGINX, enquanto HTTP/2 e HTTP/3 compartilham terminação TLS/QUIC na borda. Comparações que incluem HTTP/1.1 direto misturam efeito de proxy com efeito de protocolo.
+\end{sloppypar}
 
 Diferentemente de HTTP/1.1 e HTTP/2 (k6), HTTP/3 foi medido por cliente QUIC em Docker. O IQR de p95 sob \textit{netem} fica entre cerca de 11 ms e 19 ms nos perfis degradados da submatriz, contra menos de 0,2 ms em HTTP/1.1 e HTTP/2 em \textit{lag\_100ms}.
 
 Conforme a Seção~\ref{sec:protocolo-coleta}, as campanhas rodaram no Windows com Docker Desktop sobre WSL2. HTTP/3 usa QUIC sobre UDP; o repasse de UDP entre o host e os contêineres nessa pilha é conhecido por ser lento. Esse custo pode elevar a latência e a variabilidade medidas no caminho HTTP/3 em relação a uma coleta em Linux nativo, sem essa camada de virtualização. Os resultados de HTTP/3 deste capítulo devem ser lidos com essa restrição do ambiente; o trabalho não isolou o repasse UDP do Docker Desktop.
 
-O cliente curl não reaproveita a conexão QUIC entre requisições. Em benchmarks/http3/run-load.sh, cada VU é um worker bash que permanece ativo durante a duração. A cada volta do loop, o worker chama curl \texttt{-{}-http3-only} (ou \texttt{-{}-http3}) com uma única URL e espera o processo encerrar. Não há \texttt{-{}-next}, lista de URLs nem arquivo de sessão. Ao encerrar, o processo leva o soquete UDP, e a requisição seguinte abre outra conexão QUIC, com novo handshake. Há um contêiner por execução (benchmarks/http3/run-h3.ps1), e o processo novo é o curl. A Seção~\ref{sec:analise-discussao} já usa esse fato para ler o time\_total. O access log da sonda não traz identificador de conexão.
+O cliente curl não reaproveita a conexão QUIC entre requisições. Em \breaktok{benchmarks/http3/run-load.sh}, cada VU é um worker bash que permanece ativo durante a duração. A cada volta do loop, o worker chama curl \texttt{-{}-http3-only} (ou \texttt{-{}-http3}) com uma única URL e espera o processo encerrar. Não há \texttt{-{}-next}, lista de URLs nem arquivo de sessão. Ao encerrar, o processo leva o soquete UDP, e a requisição seguinte abre outra conexão QUIC, com novo handshake. Há um contêiner por execução (\breaktok{benchmarks/http3/run-h3.ps1}), e o processo novo é o curl. A Seção~\ref{sec:analise-discussao} já usa esse fato para ler o time\_total. O access log da sonda não traz identificador de conexão.
 
 Nos scripts k6 (benchmarks/k6/ping.js, payload.js, echo.js e lib/config.js) não há noConnectionReuse nem noVUConnectionReuse, e benchmarks/scripts/run-all.ps1 não passa \texttt{-{}-no-connection-reuse} nem \texttt{-{}-no-vu-connection-reuse}. O padrão dessas opções no k6 é \texttt{false}, e a conexão do VU permanece entre iterações. Em HTTP/2, as requisições seguintes do mesmo VU saem por essa conexão. A taxa do curl inclui a partida do processo e o handshake em toda requisição. No k6 em HTTP/2, a mesma taxa vem de requisições na conexão que o VU já mantém.
 
