@@ -126,7 +126,7 @@ Ausência de suporte QUIC nativo no Node.js & Terminação HTTP/3 no NGINX; \tex
 UDP e TLS na borda (porta 8443) & Certificados locais; listen QUIC com reuseport; documentação de validação manual no repositório \\
 Negociação HTTP/3 (Alt-Svc) vs comparação controlada & Cliente HTTP/2 força ALPN sem upgrade; cliente HTTP/3 força QUIC (-http3-only) \\
 k6 não gera carga HTTP/3 & Cliente QUIC em Docker (benchmarks/http3/); métricas normalizadas ao mesmo JSON dos resumos k6 \\
-Heterogeneidade de ferramentas entre protocolos & Interpretação conjunta com logs NGINX e \textit{Server-Timing}; limitação explicitada na análise (Capítulo~\ref{cap:resultados}) \\
+Heterogeneidade de ferramentas entre protocolos & Access log do NGINX na sonda de uma célula (Capítulo~\ref{cap:resultados}); cabeçalho \textit{Server-Timing} emitido pela API e ausente dos arquivos de resultado \\
 \textit{Rate limiter} distorcendo testes de carga & BENCHMARK\_MODE=true (variável de ambiente ou docker-compose.bench.yml) \\
 Dois modos de deploy (host vs contêineres) & Modo \textit{host} para dev; modo bench obrigatório para netem simétrico em H/1.1, H/2 e H/3 \\
 Inicialização concorrente (dev:nginx) & NGINX pode registrar erros temporários de \textit{upstream} até a API subir; aguardar /health antes de medir \\
