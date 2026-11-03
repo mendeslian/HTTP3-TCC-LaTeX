@@ -27,7 +27,7 @@ A revisão rápida da literatura foi feita por um único aluno, sem segundo revi
 O artefato publicado foi projetado para suportar três medições que esta rodada não executou.
 
 \begin{enumerate}[label=\alph*)]
-\item Medir HTTP/1.1 pelo mesmo NGINX usado em HTTP/2 e HTTP/3. No arranjo atual, HTTP/1.1 acessa a API direto, e a comparação mistura efeito de protocolo com efeito de proxy.
+\item Reexecutar as campanhas medindo HTTP/1.1 pelo mesmo NGINX de HTTP/2 e HTTP/3. O artefato envia o k6 de HTTP/1.1 a https://localhost:8443 com ALPN http/1.1. As campanhas publicadas mediram HTTP/1.1 em acesso direto à API, e essa comparação mistura efeito de protocolo com efeito de proxy.
 \item Equiparar os geradores de carga. HTTP/3 foi medido por um cliente QUIC em contêiner, distinto do k6, o que distorce a latência e a vazão relativas ao HTTP/2 no mesmo proxy.
 \item Sair de localhost. As duas campanhas rodaram na mesma estação em Docker, e teste nesse ambiente não reproduz a Internet pública.
 \end{enumerate}
