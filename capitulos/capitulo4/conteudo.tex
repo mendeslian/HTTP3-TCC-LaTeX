@@ -1,6 +1,6 @@
-﻿\chapter{METODOLOGIA E IMPLEMENTAÇÃO DO AMBIENTE DE TESTES}
+﻿\chapter{METODOLOGIA E IMPLEMENTAÇÃO DO AMBIENTE DE TESTES}\label{cap:metodologia}
 
-Este capítulo detalha o artefato experimental (API REST, NGINX, Docker e roteiros de coleta) projetado para responder às questões de pesquisa do Capítulo 1, com proxy reverso como estratégia de integração diante da ausência de suporte nativo estável a HTTP/3 no Node.js (KOCH; FALOWO; ELROD, 2024).
+Este capítulo detalha o artefato experimental (API REST, NGINX, Docker e roteiros de coleta) projetado para responder às questões de pesquisa do Capítulo~\ref{cap:intro}, com proxy reverso como estratégia de integração diante da ausência de suporte nativo estável a HTTP/3 no Node.js (KOCH; FALOWO; ELROD, 2024).
 
 Trata-se de um estudo de caso experimental com abordagem quantitativa: constrói-se um artefato de software reprodutível, define-se uma matriz de cenários controlados e coletam-se métricas de desempenho comparáveis entre HTTP/1.1, HTTP/2 e HTTP/3.
 
@@ -9,28 +9,28 @@ Trata-se de um estudo de caso experimental com abordagem quantitativa: constrói
 A API REST em Node.js foi construída para avaliações de desempenho, com ambiente controlado que permite comparar HTTP/1.1, HTTP/2 e HTTP/3 sob o mesmo contrato de rotas. A estratégia central consiste em expor HTTP/3 na borda por meio de um proxy reverso NGINX, enquanto o \textit{backend} permanece em HTTP/1.1, em linha com estudos que comparam HTTP/3 e HTTP/2 com integração de proxy (MUÑOZ et al., 2025; TRIPATHI; MIRAZ; JOSHI, 2023). O cliente acessa a API por três caminhos de transporte:
 
 \begin{enumerate}[label=\alph*)]
-\item HTTP/1.1 (baseline) - requisições diretas a http://localhost:3000, sem inter-mediário;
+\item HTTP/1.1 (baseline) - requisições a https://localhost:8443, com terminação TLS no NGINX e ALPN restrito a http/1.1;
 \item HTTP/2 via proxy - requisições a https://localhost:8443, com terminação TLS e ALPN HTTP/2 no NGINX;
 \item HTTP/3 via proxy - requisições a https://localhost:8443, com terminação QUIC/UDP no NGINX.
 \end{enumerate}
 
-Em todos os caminhos, o contrato REST da API - rotas, métodos e formatos de resposta - permanece idêntico; apenas a camada de transporte e a topologia (direto versus via NGINX) variam, conforme a Seção 2.6. Isso isola diferenças de implementação da aplicação, mas não elimina a assimetria estrutural entre HTTP/1.1 direto e os protocolos terminados no proxy - limitação tratada na análise dos resultados (TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022).
+Em todos os caminhos, o contrato REST da API - rotas, métodos e formatos de resposta - permanece idêntico. HTTP/1.1, HTTP/2 e HTTP/3 terminam no NGINX, que encaminha as requisições à API em HTTP/1.1, conforme a Seção~\ref{sec:apis-rest}.
 
-O ambiente experimental foi delimitado a um cenário controlado de laboratório, sem \textit{frontend}, sem implantação em produção em larga escala e sem modificação do núcleo do Node.js, conforme a Seção 1.9. As questões de pesquisa orientam o desenho do artefato da seguinte forma:
+O ambiente experimental foi delimitado a um cenário controlado de laboratório, sem \textit{frontend}, sem implantação em produção em larga escala e sem modificação do núcleo do Node.js, conforme a Seção~\ref{sec:delimitacao}. As questões de pesquisa orientam o desenho do artefato da seguinte forma:
 
 \begin{enumerate}[label=\alph*)]
 \item viabilidade (QP1) - verificar se HTTP/3 pode ser utilizado com Node.js por meio de proxy reverso;
-\item desafios técnicos (QP2) - documentar configuração, observabilidade e trade-offs opera-cionais (Seção 4.2.4);
-\item desempenho comparativo (QP3) - medir latência, tempo de resposta, TTFB, throughput e requisições por segundo (Seção 2.8);
+\item desafios técnicos (QP2) - documentar configuração, observabilidade e trade-offs opera-cionais (Seção~\ref{sec:desafios-qp2});
+\item desempenho comparativo (QP3) - medir latência, tempo de resposta, TTFB, throughput e requisições por segundo (Seção~\ref{sec:metricas});
 \item estratégias de integração (QP4) - tornar reprodutível a arquitetura proxy + API REST.
 \end{enumerate}
 
-A Figura 2 resume os três caminhos de acesso e o papel do proxy reverso na terminação de HTTP/2 e HTTP/3.
+A Figura~\ref{fig:arquitetura-experimental} resume os três caminhos. HTTP/1.1, HTTP/2 e HTTP/3 terminam no NGINX na porta 8443, e o upstream até a API permanece HTTP/1.1.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{assets/figuras/image4.png}
-\caption{Arquitetura experimental: baseline HTTP/1.1 e caminhos HTTP/2/HTTP/3 via NGINX}
+\caption{Arquitetura experimental: HTTP/1.1, HTTP/2 e HTTP/3 terminados no NGINX}\label{fig:arquitetura-experimental}
 \fonte{Fonte: elaborado pelo autor.}
 \end{figure}
 
@@ -43,53 +43,59 @@ O código-fonte do artefato está disponível no repositório \url{https://githu
 O ambiente de execução foi construído sobre Node.js (versão $\geq$ 18), executando a API em TypeScript com o \textit{framework Express} 5. A orquestração do \textit{proxy} HTTP/3 utiliza \textit{Docker} e \textit{Docker }\textit{Compose}. O artefato prevê dois modos de implantação, distintos em topologia, mas com o mesmo contrato REST e os mesmos caminhos de protocolo expostos ao cliente:
 
 \begin{enumerate}[label=\alph*)]
-\item modo desenvolvimento e validação (host): o contêiner NGINX (docker-compose.yml, infra/nginx/nginx.conf) termina HTTP/2 e HTTP/3 na porta 8443 e encaminha requisições ao processo Node.js em execução no host (host.docker.internal:3000). O script npm run dev:nginx inicia proxy e API em paralelo; npm run dev executa apenas a API para baseline HTTP/1.1. Esse modo facilita validação manual com curl e desenvolvimento iterativo;
-\item modo campanha de benchmark (contêineres):  para medições com rede degradada, API e NGINX executam como contêineres na rede Docker bench (docker-compose.bench.yml, infra/nginx/nginx.bench.conf), com upstream api:3000. Essa topologia é necessária para aplicar tc netem de forma simétrica nos três protocolos (TCP e UDP), conforme a Seção 4.5.4.
+\item modo desenvolvimento e validação (host): o contêiner NGINX (docker-compose.yml, infra/nginx/nginx.conf) termina HTTP/1.1, HTTP/2 e HTTP/3 na porta 8443 e encaminha requisições ao processo Node.js em execução no host (host.docker.internal:3000). O script npm run dev:nginx inicia proxy e API em paralelo; npm run dev executa apenas a API. Esse modo facilita validação manual com curl e desenvolvimento iterativo;
+\item modo campanha de benchmark (contêineres):  para medições com rede degradada, API e NGINX executam como contêineres na rede Docker bench (\breaktok{docker-compose.bench.yml}, \breaktok{infra/nginx/nginx.bench.conf}), com upstream api:3000. Essa topologia é necessária para aplicar tc netem de forma simétrica nos três protocolos (TCP e UDP), conforme a Seção~\ref{sec:rede-degradada-desenho}.
 \end{enumerate}
 
 As duas campanhas reportadas neste trabalho utilizaram exclusivamente o modo campanha. O modo \textit{host} permanece documentado no repositório para reprodução dos caminhos de protocolo fora do laboratório \textit{bench}.
 
 \subsection{Proxy reverso e terminação HTTP/3}
 
-O NGINX atua como proxy reverso, terminando conexões HTTP/2 (TLS/TCP) e HTTP/3 (QUIC/UDP) na porta 8443 e encaminhando requisições ao \textit{backend} em HTTP/1.1. A configuração segue as especificações normativas de QUIC e HTTP/3 (QUIC Working Group - IETF, 2021; IETF, 2022) e anuncia suporte a HTTP/3 por meio do cabeçalho Alt-Svc, permitindo negociação automática com clientes compatíveis.
+O NGINX atua como proxy reverso, terminando HTTP/1.1 e HTTP/2 em TLS/TCP e HTTP/3 em QUIC/UDP na porta 8443, e encaminhando requisições ao \textit{backend} em HTTP/1.1. A configuração segue as especificações normativas de QUIC e HTTP/3 (QUIC Working Group - IETF, 2021; IETF, 2022) e anuncia suporte a HTTP/3 por meio do cabeçalho Alt-Svc, permitindo negociação automática com clientes compatíveis.
 
 Os principais elementos da configuração incluem:
 
 \begin{enumerate}[label=\alph*)]
 \item terminação TLS: certificados locais (localhost.crt/key) para https://localhost:8443
 \item HTTP/3 (QUIC): listen 8443 quic reuseport com UDP na mesma porta;
-\item HTTP/2: habilitado na mesma porta TLS para fallback e comparação;
+\item HTTP/1.1 e HTTP/2: mesma escuta TLS; o cliente de HTTP/1.1 oferece só http/1.1 no ALPN, e o de HTTP/2 negocia h2;
 \item upstream HTTP/1.1: proxy\_pass para a API Node.js na porta 3000;
-\item logs estruturados: formato personalizado registrando \$request\_time e \$upstream\_response\_time para correlação com métricas da aplicação.
+\item logs estruturados: formato personalizado registrando \$\breaktok{request_time} e \$\breaktok{upstream_response_time} para correlação com métricas da aplicação.
 \end{enumerate}
 
-No modo campanha (nginx.bench.conf), o bloco server concentra escuta TLS/QUIC e encaminhamento ao upstream api:3000, conforme a Listagem 4.1.
+No modo campanha (\breaktok{nginx.bench.conf}), o upstream \breaktok{node_api} define o servidor api:3000 e o bloco server concentra escuta TLS/QUIC e encaminhamento com \breaktok{proxy_pass http://node_api}, conforme a Listagem 4.1.
 
 \par\noindent
 \begin{minipage}{\linewidth}
 \centering
-\textbf{Listagem 4.1 - Trecho de infra/nginx/nginx.bench.conf(terminação HTTP/2/HTTP/3 e upstream).}
+\textbf{Listagem 4.1 - Trecho de infra/nginx/nginx.bench.conf (terminação HTTP/2/HTTP/3 e upstream).}
 
-\small
-\begin{verbatim}
-server {
-    listen 8443 ssl;
-    listen 8443 quic reuseport;
-    http2 on;
-    http3 on;
-    add_header Alt-Svc 'h3=":8443"; ma=2592000' always;
-
-    ssl_protocols TLSv1.3;
-    ssl_certificate /etc/nginx/certs/localhost.crt;
-    ssl_certificate_key /etc/nginx/certs/localhost.key;
-
-location / {
-    proxy_pass http://node_api; proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    }
-
+\begin{lstlisting}
+upstream node_api {
+  server api:3000;
 }
-\end{verbatim}
+
+server {
+  listen 8443 ssl;
+  listen 8443 quic reuseport;
+
+  http2 on;
+  http3 on;
+  add_header Alt-Svc 'h3=":8443"; ma=2592000' always;
+
+  ssl_protocols TLSv1.3;
+  ssl_certificate     /etc/nginx/certs/localhost.crt;
+  ssl_certificate_key /etc/nginx/certs/localhost.key;
+
+  location / {
+    proxy_pass http://node_api;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+\end{lstlisting}
 \end{minipage}
 \par
 
@@ -97,19 +103,19 @@ Essa arquitetura possibilita avaliar HTTP/3 sem alterar o código da API, mas in
 
 \subsection{Ferramentas de teste de carga}
 
-Em linha com o objetivo do trabalho (Seção 1.4) e com as métricas da Seção 2.8, a coleta principal utiliza k6 para HTTP/1.1 e HTTP/2. O k6 permite simular múltiplos usuários virtuais (VUs), configurar ramp-up de carga e exportar latência, tempo de resposta e taxa de transferência.
+Em linha com o objetivo do trabalho (Seção~\ref{sec:objetivo}) e com as métricas da Seção~\ref{sec:metricas}, a coleta principal utiliza o h2load do nghttp2 1.70.0 para HTTP/1.1, HTTP/2 e HTTP/3. O mesmo binário, no contêiner \breaktok{quicbench-h2load:1.70.0}, fala com https://nginx:8443. \texttt{-{}-h1} pede HTTP/1.1, \texttt{-{}-alpn-list=h2} pede HTTP/2 e \texttt{-{}-h3} pede HTTP/3.
 
-Os perfis de carga adotados são 10, 50 e 100 usuários virtuais, com duração de 60 s por execução e ramp-up de 10 s, equilibrando a viabilidade em laboratório local com uma faixa de concorrência inspirada em estudos que também variam carga e \textit{payload} em APIs REST (ZAHRA; ARDIANSYAH, 2026).
+Os perfis de carga adotados são 10, 50 e 100 clientes (\texttt{-c}), com patamar de 60 s e prefixo de aquecimento de 10 s, equilibrando a viabilidade em laboratório local com uma faixa de concorrência inspirada em estudos que também variam carga e \textit{payload} em APIs REST (ZAHRA; ARDIANSYAH, 2026). \texttt{-m 1} deixa um stream em voo por sessão e \texttt{-t 1} fixa uma thread. O \texttt{-{}-warm-up-time} descarta o prefixo. O número de clientes permanece o de \texttt{-c} durante o patamar. No modo \texttt{-D}, a taxa do JSON usa só a duração do patamar.
 
-Os \textit{scripts} estão organizados em benchmarks/: cenários k6 em benchmarks/k6/, cliente QUIC para HTTP/3 em benchmarks/http3/, orquestração em benchmarks/scripts/ e agregação estatística em benchmarks/scripts/aggregate.ts. Os comandos npm run bench:run (matriz em rede ideal), npm run bench:degraded (rede degradada) e npm run bench:agg reproduzem a coleta e a consolidação dos resultados em benchmarks/results/ A validação manual dos três protocolos pode ser feita com curl conforme documentado no repositório.
+Os \textit{scripts} estão organizados em \breaktok{benchmarks/}: o gerador em \breaktok{benchmarks/h2load/}, a orquestração em \breaktok{benchmarks/scripts/} e a agregação em \breaktok{benchmarks/scripts/aggregate.ts}. Os comandos \breaktok{npm run bench:run} (matriz em rede ideal), \breaktok{npm run bench:degraded} (rede degradada) e \breaktok{npm run bench:agg} reproduzem a coleta e a consolidação dos resultados em \breaktok{benchmarks/results/}. A validação manual dos três protocolos pode ser feita com curl conforme documentado no repositório.
 
-\subsection{Desafios técnicos e mitigações (QP2)}
+\subsection{Desafios técnicos e mitigações (QP2)}\label{sec:desafios-qp2}
 
-A integração de HTTP/3 com Node.js por proxy reverso expõe desafios operacionais além da configuração básica do NGINX. A Tabela 7 resume os principais obstáculos encontrados na implementação do artefato e as estratégias adotadas para mitigá-los, respondendo à QP2.
+A integração de HTTP/3 com Node.js por proxy reverso expõe desafios operacionais além da configuração básica do NGINX. A Tabela~\ref{tab:desafios-tecnicos} resume os principais obstáculos encontrados na implementação do artefato e as estratégias adotadas para mitigá-los, respondendo à QP2.
 
 \begin{table}[htbp]
 \centering
-\caption{Desafios técnicos na adoção de HTTP/3 com Node.js e mitigações no artefato}
+\caption{Desafios técnicos na adoção de HTTP/3 com Node.js e mitigações no artefato}\label{tab:desafios-tecnicos}
 \small
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{52mm}>{\raggedright\arraybackslash}p{94mm}@{}}
@@ -118,9 +124,9 @@ A integração de HTTP/3 com Node.js por proxy reverso expõe desafios operacion
 \hline
 Ausência de suporte QUIC nativo no Node.js & Terminação HTTP/3 no NGINX; \textit{backend} inalterado em HTTP/1.1 (KOCH; FALOWO; ELROD, 2024) \\
 UDP e TLS na borda (porta 8443) & Certificados locais; listen QUIC com reuseport; documentação de validação manual no repositório \\
-Negociação HTTP/3 (Alt-Svc) vs comparação controlada & Cliente HTTP/2 força ALPN sem upgrade; cliente HTTP/3 força QUIC (-http3-only) \\
-k6 não gera carga HTTP/3 & Cliente QUIC em Docker (benchmarks/http3/); métricas normalizadas ao mesmo JSON dos resumos k6 \\
-Heterogeneidade de ferramentas entre protocolos & Interpretação conjunta com logs NGINX e \textit{Server-Timing}; limitação explicitada na análise (Capítulo 5) \\
+Negociação HTTP/3 (Alt-Svc) vs comparação controlada & O h2load pede o protocolo na flag: \texttt{-{}-h1}, \texttt{-{}-alpn-list=h2} ou \texttt{-{}-h3} \\
+Um gerador por protocolo & h2load do nghttp2 1.70.0 no mesmo contêiner, com o JSON convertido ao esquema de aggregate.ts \\
+Observabilidade repartida entre cliente, NGINX e API & Access log do NGINX numa célula curta de cada protocolo (Capítulo~\ref{cap:resultados}); cabeçalho \textit{Server-Timing} emitido pela API e ausente dos arquivos de resultado \\
 \textit{Rate limiter} distorcendo testes de carga & BENCHMARK\_MODE=true (variável de ambiente ou docker-compose.bench.yml) \\
 Dois modos de deploy (host vs contêineres) & Modo \textit{host} para dev; modo bench obrigatório para netem simétrico em H/1.1, H/2 e H/3 \\
 Inicialização concorrente (dev:nginx) & NGINX pode registrar erros temporários de \textit{upstream} até a API subir; aguardar /health antes de medir \\
@@ -147,11 +153,11 @@ O servidor HTTP utiliza o módulo nativo node:http, expondo HTTP/1.1 na porta co
 
 \subsection{Rotas de benchmark}
 
-Além da rota de health check (GET /health), a API expõe três \textit{endpoints} dedicados a avaliações de desempenho, projetados para permitir a medição das métricas da Seção 2.8. A Tabela 8 resume o contrato REST de cada rota.
+Além da rota de health check (GET /health), a API expõe três \textit{endpoints} dedicados a avaliações de desempenho, projetados para permitir a medição das métricas da Seção~\ref{sec:metricas}. A Tabela~\ref{tab:rotas-benchmark} resume o contrato REST de cada rota.
 
 \begin{table}[htbp]
 \centering
-\caption{Rotas de benchmark da API experimental}
+\caption{Rotas de benchmark da API experimental}\label{tab:rotas-benchmark}
 \small
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{38mm}>{\raggedright\arraybackslash}p{16mm}>{\raggedright\arraybackslash}p{92mm}@{}}
@@ -171,9 +177,11 @@ Os payloads de /bench/payload/:size são pré-computados em startup da aplicaç�
 
 \subsection{Configuração experimental}
 
-Parâmetros operacionais da API são controlados por variáveis de ambiente, validadas em startup. A Tabela 9 resume as variáveis relevantes para os experimentos.
+Parâmetros operacionais da API são controlados por variáveis de ambiente, validadas em startup. A Tabela~\ref{tab:variaveis-ambiente} resume as variáveis relevantes para os experimentos.
 
-A variável BENCHMARK\_MODE foi introduzida para evitar que o rate limiter (100 re-quisições por minuto, por padrão) distorça testes de carga sob concorrência elevada. Quando ativada, o limitador é ignorado, permitindo medições de capacidade e estabilidade sob carga.
+\begin{sloppypar}
+A variável BENCHMARK\_MODE foi introduzida para evitar que o rate limiter (100 requisições por minuto, por padrão) distorça testes de carga sob concorrência elevada. Quando ativada, o limitador é ignorado, permitindo medições de capacidade e estabilidade sob carga.
+\end{sloppypar}
 
 \section{Observabilidade}
 
@@ -181,14 +189,14 @@ A observabilidade do ambiente experimental foi projetada em duas camadas, uma de
 
 \begin{table}[htbp]
 \centering
-\caption{Variáveis de ambiente para configuração experimental}
+\caption{Variáveis de ambiente para configuração experimental}\label{tab:variaveis-ambiente}
 \small
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{52mm}>{\raggedright\arraybackslash}p{18mm}>{\raggedright\arraybackslash}p{76mm}@{}}
 \hline
 Variável & Padrão & Função experimental \\
 \hline
-PORT & 3000 & Porta da API (baseline HTTP/1.1) \\
+PORT & 3000 & Porta da API; o NGINX encaminha o upstream para ela \\
 BENCHMARK\_\allowbreak MODE & false & Quando true, desabilita o rate limiter \\
 BENCH\_\allowbreak MAX\_\allowbreak BODY\_\allowbreak BYTES & 2097152 & Tamanho máximo do corpo em POST /bench/echo \\
 METRICS\_\allowbreak FILE & (vazio) & Caminho para export NDJSON de métricas por requisição \\
@@ -201,26 +209,26 @@ TRUST\_\allowbreak PROXY\_\allowbreak HOPS & 1 & Hops de proxy confiável (NGINX
 
 O middleware requestMetrics registra, a cada requisição finalizada, método HTTP, caminho, protocolo, código de status, duração em milissegundos e bytes enviados. Os registros são emitidos via Pino (structured logging) com a mensagem metricas\_requisicao. Adicionalmente, o cabeçalho Server-Timing: app;dur=<ms> é injetado antes do envio dos cabeçalhos de resposta, permitindo separar o tempo de processamento da aplicação do tempo total de transporte.
 
-Quando configurada, a variável METRICS\_FILE habilita a gravação de cada métrica em formato NDJSON (Newline Delimited JSON), um registro por linha, para análise posterior no Capítulo 5.
+Quando configurada, a variável METRICS\_FILE habilita a gravação de cada métrica em formato NDJSON (Newline Delimited JSON), um registro por linha, para análise posterior no Capítulo~\ref{cap:resultados}.
 
 O NGINX utiliza um formato de log personalizado que registra \$request\_time (tempo total da requisição no proxy) e \$upstream\_response\_time (tempo de resposta do backend). Esses valores complementam as métricas da aplicação na estimativa de TTFB e do tempo de resposta fim a fim.
 
-A Tabela 10 relaciona as métricas da Seção 2.8 às fontes de medição disponíveis no ambiente experimental.
+A Tabela~\ref{tab:mapeamento-metricas} relaciona as métricas da Seção~\ref{sec:metricas} às fontes de medição disponíveis no ambiente experimental.
 
 \begin{table}[htbp]
 \centering
-\caption{Mapeamento de métricas de desempenho e fontes de medição}
+\caption{Mapeamento de métricas de desempenho e fontes de medição}\label{tab:mapeamento-metricas}
 \small
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{36mm}>{\raggedright\arraybackslash}p{62mm}>{\raggedright\arraybackslash}p{46mm}@{}}
 \hline
 \textbf{Métrica} & \textbf{Fonte primária} & \textbf{Fonte complementar} \\
 \hline
-Latência & k6 (H/1.1, H/2); cliente QUIC Logs (H/3) (\$request\_time) & NGINX \\
-Tempo de resposta & k6; cliente QUIC (H/3) & Pino (durationMs) \\
-TTFB & k6; cliente QUIC (H/3) & Server-Timing; NGINX \\
-\textit{Throughput} & k6; cliente QUIC (H/3) & Bytes em /bench/payload e /bench/echo \\
-Requisições por \textasciitilde\ segundo & k6; cliente QUIC (H/3) & Pino \\
+Latência & h2load (p95 de \breaktok{performance.request}, em ms) & NGINX (\$request\_time) \\
+Tempo de resposta & h2load, o mesmo percentil nos três protocolos & Pino (durationMs) \\
+TTFB & Sem valor por requisição no JSON do h2load & Server-Timing; NGINX \\
+\textit{Throughput} & h2load (\breaktok{bytes_per_second}, cabeçalhos e corpo) & Bytes em /bench/payload e /bench/echo \\
+Requisições por \textasciitilde\ segundo & h2load (sucessos / duração do patamar) & Pino \\
 \hline
 \end{tabular}
 \fonte{Fonte: elaborado pelo autor.}
@@ -228,21 +236,21 @@ Requisições por \textasciitilde\ segundo & k6; cliente QUIC (H/3) & Pino \\
 
 \section{Cenários experimentais definidos}
 
-Esta seção descreve o desenho experimental planejado, organizado a partir das variáveis identificadas na literatura como determinantes do desempenho relativo entre HTTP/3, HTTP/2 e HTTP/1.1 (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). O artefato implementa a matriz completa documentada no repositório. A análise quantitativa reportada no Capítulo 5 compreende a submatriz de rede degradada (GET /bench/ping, 50 VUs, quatro perfis netem) e a matriz de payload e de concorrência em rede ideal (clean), com dez réplicas por célula (Seção 5.4).
+Esta seção descreve o desenho experimental planejado, organizado a partir das variáveis identificadas na literatura como determinantes do desempenho relativo entre HTTP/3, HTTP/2 e HTTP/1.1 (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). O artefato implementa a matriz completa documentada no repositório. A análise quantitativa reportada no Capítulo~\ref{cap:resultados} compreende a submatriz de rede degradada (GET /bench/ping, 50 clientes, quatro perfis netem) e a matriz de payload e de concorrência em rede ideal (clean), com dez réplicas por célula (Seção~\ref{sec:matriz-ideal}).
 
 \subsection{Comparação entre protocolos}
 
 O objetivo central do estudo é comparar HTTP/1.1, HTTP/2 e HTTP/3 sob condições equivalentes de carga e payload. Os três caminhos de acesso previstos são:
 
 \begin{enumerate}[label=\alph*)]
-\item HTTP/1.1 - http://localhost:3000, conexão direta com a API;
-\item HTTP/2 - https://localhost:8443, negociado via ALPN no NGINX;
+\item HTTP/1.1 - https://localhost:8443, TLS no NGINX, com ALPN restrito a http/1.1;
+\item HTTP/2 - https://localhost:8443, negociado via ALPN h2 no NGINX;
 \item HTTP/3 - https://localhost:8443, sobre QUIC/UDP, anunciado pelo NGINX via Alt-Svc.
 \end{enumerate}
 
-Para tornar a comparação o mais justa possível, o roteiro fixa o mesmo contrato REST em todos os caminhos, alterando apenas o transporte (TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). HTTP/1.1 utiliza http://localhost:3000 com k6 (PROTO=h1). HTTP/2 e HTTP/3 utilizam https://localhost:8443: o k6 negocia HTTP/2 via ALPN (PROTO=h2); HTTP/3 é exercitado por cliente QUIC em contêiner Docker (benchmarks/http3/), pois o k6 não suporta QUIC, com métricas normalizadas ao mesmo esquema JSON dos resumos k6. 
+Para tornar a comparação o mais justa possível, o roteiro fixa o mesmo contrato REST em todos os caminhos e altera o transporte na borda (TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). As campanhas do Capítulo~\ref{cap:resultados} usam o h2load contra https://nginx:8443 nos três protocolos. HTTP/1.1 sai com \texttt{-{}-h1}, HTTP/2 com \texttt{-{}-alpn-list=h2} e HTTP/3 com \texttt{-{}-h3}. Uma célula curta de cada protocolo deixou no access log do NGINX os valores HTTP/1.1, HTTP/2.0 e HTTP/3.0.
 
-Nos testes, a negociação automática foi deliberadamente evitada. Em HTTP/2, o cliente não faz upgrade para HTTP/3 via Alt-Svc; em HTTP/3, o cliente força QUIC (-http3-only). Assim, o mecanismo de fallback entre versões não foi exercitado experimentalmente. O detalhamento operacional consta em benchmarks/README.md do repositório do artefato.
+Nos testes de carga, a negociação automática foi deliberadamente evitada: cada execução pede um protocolo na flag, e o cliente de HTTP/2 não oferece http/1.1 no ALPN. Uma sonda em 4 de novembro de 2026, no modo host, usou o curl 8.11.0-DEV da imagem alpine/curl-http3 com \texttt{-{}-alt-svc} em \breaktok{https://host.docker.internal:8443/bench/ping}. A primeira requisição usou \texttt{-{}-http2}. A segunda usou o cache dessa resposta, sem \texttt{-{}-http2} e sem \texttt{-{}-http3}. A terceira repetiu a segunda com o NGINX publicando só 8443/tcp. Os arquivos estão em benchmarks/results/alt-svc-fallback/2026-11-04\_01-30-34/. A Seção~\ref{sec:alt-svc} registra o protocolo de cada uma. Os comandos estão em benchmarks/README.md.
 
 \subsection{Variação de payload}
 
@@ -254,25 +262,25 @@ Inspirado em estudos que analisam \textit{payload} como variável experimental (
 \item 1 MB (1mb) - payload volumoso, para avaliar throughput de transferência.
 \end{enumerate}
 
-Essas dimensões são expostas pela rota GET /bench/payload/:size (download) e complementadas por POST /bench/echo (upload), permitindo avaliar o impacto do tamanho do corpo em ambas as direções de transferência. A matriz ideal executada neste TCC incluiu esses endpoints em rede clean, com 50 VUs, 60 s de duração e ramp-up de 10 s (npm run bench:run; Seção 5.4).
+Essas dimensões são expostas pela rota GET /bench/payload/:size (download) e complementadas por POST /bench/echo (upload), permitindo avaliar o impacto do tamanho do corpo em ambas as direções de transferência. A matriz ideal executada neste TCC incluiu esses endpoints em rede clean, com 50 clientes, patamar de 60 s e aquecimento de 10 s descartado (npm run bench:run; Seção~\ref{sec:matriz-ideal}).
 
 \subsection{Níveis de concorrência}
 
 A avaliação de desempenho foi organizada em duas campanhas: uma matriz de rede ideal (\textit{clean}) e uma matriz de rede degradada. 
 
-Na matriz ideal, a rota GET /bench/ping foi testada com 10, 50 e 100 usuários virtuais (VUs), enquanto a rota GET /bench/payload/:size, com payloads de 1 KB, 100 KB e 1 MB, e a rota POST /bench/echo, com corpo de 100 KB, foram avaliadas com 50 VUs. Essa campanha utilizou dez réplicas por célula, duração configurada de 60 s e \textit{ramp-up} de 10 s para os testes com k6. O cliente HTTP/3 iniciou as requisições sem uma etapa de \textit{ramp-up} equivalente. 
+Na matriz ideal, a rota GET /bench/ping foi testada com 10, 50 e 100 clientes, enquanto a rota GET /bench/payload/:size, com payloads de 1 KB, 100 KB e 1 MB, e a rota POST /bench/echo, com corpo de 100 KB, foram avaliadas com 50 clientes. Essa campanha utilizou dez réplicas por célula, patamar de 60 s e aquecimento de 10 s descartado, nos três protocolos. O intervalo entre réplicas foi de três minutos.
 
-Na campanha de rede degradada, a rota GET /bench/ping foi avaliada com 50 VUs nos protocolos HTTP/1.1, HTTP/2 e HTTP/3, considerando quatro perfis: \textit{clean}, atraso de 100 ms, perda de pacotes de 1\% e combinação de atraso de 100 ms com perda de pacotes de 1\%. Foram realizadas dez réplicas por combinação de protocolo e perfil de rede. Os arquivos individuais e os resumos agregados da campanha degradada estão disponíveis no diretório de resultados arquivados do projeto. O log preservado registra execuções k6 com duração total de 35 s distribuída em dois estágios, enquanto os resultados do cliente HTTP/3 indicam uma janela efetiva de aproximadamente 30 s. Na campanha degradada executada, os parâmetros foram 30 s de carga sustentada e ramp-up de 5 s no k6 (35 s totais nos dois estágios); o cliente HTTP/3 operou com duração de 30 s, sem ramp-up equivalente, conforme registrado em campaign.json e detalhado na Seção 5.1.
+Na campanha de rede degradada, a rota GET /bench/ping foi avaliada com 50 clientes nos protocolos HTTP/1.1, HTTP/2 e HTTP/3, considerando quatro perfis: \textit{clean}, atraso de 100 ms, perda de pacotes de 1\% e combinação de atraso de 100 ms com perda de pacotes de 1\%. Foram realizadas dez réplicas por combinação de protocolo e perfil de rede. O patamar é de 60 s e o aquecimento descartado é de 10 s, nos três protocolos, com cooldown\_sec = 0, conforme campaign.json e a Seção~\ref{sec:protocolo-coleta}.
 
-\subsection{Rede degradada}
+\subsection{Rede degradada}\label{sec:rede-degradada-desenho}
 
-Estudos comparativos ressaltam que benefícios do HTTP/3 podem ser mais evidentes sob condições de rede degradada (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023). O cenário foi operacionalizado com tc netem encapsulado em Docker: API e NGINX executam na rede bench (docker-compose.bench.yml), e os scripts em benchmarks/netem/ aplicam o impairment no tráfego de saída voltado ao cliente, isentando o salto interno NGINX↔API. Os perfis definidos são: clean (controle, sem netem), lag\_100ms (atraso de 100 ms), loss\_1pct (perda de 1\%) e lag\_100ms\_loss\_1pct (combinação). A submatriz de rede degradada fixa GET /bench/ping, 50 VUs e os três protocolos.
+Estudos comparativos ressaltam que benefícios do HTTP/3 podem ser mais evidentes sob condições de rede degradada (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023). O cenário foi operacionalizado com tc netem encapsulado em Docker: API e NGINX executam na rede bench (docker-compose.bench.yml), e os scripts em benchmarks/netem/ aplicam o impairment no tráfego de saída voltado ao cliente, isentando o salto interno NGINX↔API. Os perfis definidos são: clean (controle, sem netem), lag\_100ms (atraso de 100 ms), loss\_1pct (perda de 1\%) e lag\_100ms\_loss\_1pct (combinação). A submatriz de rede degradada fixa GET /bench/ping, 50 clientes e os três protocolos.
 
-A submatriz degradada exige o modo campanha (contêineres na rede bench). O roteiro completo - comandos, parâmetros -Reps, -Duration e -Ramp, e agregação - está documentado em benchmarks/README.md e nos runners benchmarks/scripts/run-degraded.ps1 e run-all.ps1. A campanha degradada sobrescreveu os padrões do runner (60 s e ramp-up de 10 s) para 30 s e 5 s, mantendo dez réplicas por célula. A matriz ideal, disparada por npm run bench:run, usou as mesmas dez réplicas por célula, 60 s de duração, ramp-up de 10 s e intervalo de três minutos entre réplicas. Ambas as campanhas são analisadas no Capítulo 5.
+A submatriz degradada exige o modo campanha (contêineres na rede bench). O roteiro completo, com os parâmetros -Reps, -Duration e -Ramp e a agregação, está documentado em benchmarks/README.md e nos runners benchmarks/scripts/run-degraded.ps1 e run-all.ps1. Nas duas campanhas, -Duration 60 e -Ramp 10 fixam o patamar e o prefixo descartado. A degradada usou -NoPause (cooldown\_sec = 0). A matriz ideal usou dez réplicas por célula e intervalo de três minutos entre réplicas. Ambas são analisadas no Capítulo~\ref{cap:resultados}. Em nginx.bench.conf, keepalive\_requests está em 1000000, porque o default 1000 fecha a conexão e o h2load não abre outra.
 
 \subsection{Considerações sobre reprodutibilidade e análise estatística}
 
-Os experimentos foram conduzidos sobre a versão do artefato documentada neste capítulo, com resultados exportados para o diretório benchmarks/results/. O protocolo estatístico adotado neste estudo prevê 10 réplicas por célula experimental nas campanhas reportadas (submatriz degradada e matriz ideal), com agregação por mediana e intervalo interquartil (IQR) no script benchmarks/scripts/aggregate.ts. Esse número equilibra a estimativa da variabilidade entre execuções e a viabilidade de execução em laboratório local. As versões de software e o hardware de cada campanha estão registrados na Seção 5.1. No modo bench, a variável BENCHMARK\_MODE=true já consta em docker-compose.bench.yml; quem reproduzir os testes em modo host deve defini-la no arquivo .env. Os runners do repositório ainda oferecem modo quick (três réplicas) para validação do ambiente e modo full (30 réplicas) para campanhas futuras em hardware dedicado.
+Os experimentos foram conduzidos sobre a versão do artefato documentada neste capítulo, com resultados exportados para o diretório benchmarks/results/. O protocolo estatístico adotado neste estudo prevê 10 réplicas por célula experimental nas campanhas reportadas (submatriz degradada e matriz ideal). A mediana e o intervalo interquartil (IQR), no script benchmarks/scripts/aggregate.ts, descrevem cada célula. A comparação entre HTTP/2 e HTTP/3, na mesma condição de endpoint, carga e perfil de rede, usa o teste de Mann-Whitney bilateral e o delta de Cliff (MANN; WHITNEY, 1947; CLIFF, 1993), no script benchmarks/scripts/compare-h2-h3.ts. O nível de significância é 0,05 por métrica, sem correção entre condições nem entre as duas métricas. Dez réplicas equilibram a estimativa da variabilidade entre execuções e a viabilidade de execução em laboratório local. As versões de software e o hardware de cada campanha estão registrados na Seção~\ref{sec:protocolo-coleta}. No modo bench, a variável BENCHMARK\_MODE=true já consta em docker-compose.bench.yml; quem reproduzir os testes em modo host deve defini-la no arquivo .env. Os runners do repositório ainda oferecem modo quick (três réplicas) para validação do ambiente e modo full (30 réplicas) para campanhas futuras em hardware dedicado.
 
-Com os cenários definidos e o ambiente implementado, o Capítulo 5 apresenta a execução dos testes, os dados coletados e a análise comparativa entre HTTP/1.1, HTTP/2 e HTTP/3; o Capítulo 6 encerra o estudo com a síntese das respostas às questões de pesquisa e perspectivas de continuidade.
+Com os cenários definidos e o ambiente implementado, o Capítulo~\ref{cap:resultados} apresenta a execução dos testes, os dados coletados e a análise comparativa entre HTTP/1.1, HTTP/2 e HTTP/3; o Capítulo~\ref{cap:consideracoes} encerra o estudo com a síntese das respostas às questões de pesquisa e perspectivas de continuidade.
 
