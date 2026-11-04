@@ -103,11 +103,11 @@ Essa arquitetura possibilita avaliar HTTP/3 sem alterar o código da API, mas in
 
 \subsection{Ferramentas de teste de carga}
 
-Em linha com o objetivo do trabalho (Seção~\ref{sec:objetivo}) e com as métricas da Seção~\ref{sec:metricas}, a coleta principal utiliza k6 para HTTP/1.1 e HTTP/2. O k6 permite simular múltiplos usuários virtuais (VUs), configurar ramp-up de carga e exportar latência, tempo de resposta e taxa de transferência.
+Em linha com o objetivo do trabalho (Seção~\ref{sec:objetivo}) e com as métricas da Seção~\ref{sec:metricas}, a coleta principal utiliza o h2load do nghttp2 1.70.0 para HTTP/1.1, HTTP/2 e HTTP/3. O mesmo binário, no contêiner \breaktok{quicbench-h2load:1.70.0}, fala com https://nginx:8443. \texttt{-{}-h1} pede HTTP/1.1, \texttt{-{}-alpn-list=h2} pede HTTP/2 e \texttt{-{}-h3} pede HTTP/3.
 
-Os perfis de carga adotados são 10, 50 e 100 usuários virtuais, com duração de 60 s por execução e ramp-up de 10 s, equilibrando a viabilidade em laboratório local com uma faixa de concorrência inspirada em estudos que também variam carga e \textit{payload} em APIs REST (ZAHRA; ARDIANSYAH, 2026).
+Os perfis de carga adotados são 10, 50 e 100 clientes (\texttt{-c}), com patamar de 60 s e prefixo de aquecimento de 10 s, equilibrando a viabilidade em laboratório local com uma faixa de concorrência inspirada em estudos que também variam carga e \textit{payload} em APIs REST (ZAHRA; ARDIANSYAH, 2026). \texttt{-m 1} deixa um stream em voo por sessão e \texttt{-t 1} fixa uma thread. O \texttt{-{}-warm-up-time} descarta o prefixo. Isso não reproduz o \textit{ramping-vus} do k6, que sobe o número de usuários ao longo do tempo. No modo \texttt{-D}, a taxa do JSON usa só a duração do patamar.
 
-Os \textit{scripts} estão organizados em \breaktok{benchmarks/}: cenários k6 em \breaktok{benchmarks/k6/}, cliente QUIC para HTTP/3 em \breaktok{benchmarks/http3/}, orquestração em \breaktok{benchmarks/scripts/} e agregação estatística em \breaktok{benchmarks/scripts/aggregate.ts}. Os comandos \breaktok{npm run bench:run} (matriz em rede ideal), \breaktok{npm run bench:degraded} (rede degradada) e \breaktok{npm run bench:agg} reproduzem a coleta e a consolidação dos resultados em \breaktok{benchmarks/results/}. A validação manual dos três protocolos pode ser feita com curl conforme documentado no repositório.
+Os \textit{scripts} estão organizados em \breaktok{benchmarks/}: o gerador em \breaktok{benchmarks/h2load/}, a orquestração em \breaktok{benchmarks/scripts/} e a agregação em \breaktok{benchmarks/scripts/aggregate.ts}. Os diretórios \breaktok{benchmarks/k6/} e \breaktok{benchmarks/http3/} permanecem no repositório; as campanhas deste capítulo não os chamam. Os comandos \breaktok{npm run bench:run} (matriz em rede ideal), \breaktok{npm run bench:degraded} (rede degradada) e \breaktok{npm run bench:agg} reproduzem a coleta e a consolidação dos resultados em \breaktok{benchmarks/results/}. A validação manual dos três protocolos pode ser feita com curl conforme documentado no repositório.
 
 \subsection{Desafios técnicos e mitigações (QP2)}\label{sec:desafios-qp2}
 
@@ -124,9 +124,9 @@ A integração de HTTP/3 com Node.js por proxy reverso expõe desafios operacion
 \hline
 Ausência de suporte QUIC nativo no Node.js & Terminação HTTP/3 no NGINX; \textit{backend} inalterado em HTTP/1.1 (KOCH; FALOWO; ELROD, 2024) \\
 UDP e TLS na borda (porta 8443) & Certificados locais; listen QUIC com reuseport; documentação de validação manual no repositório \\
-Negociação HTTP/3 (Alt-Svc) vs comparação controlada & Cliente HTTP/1.1 restringe o ALPN a http/1.1; cliente HTTP/2 negocia h2 sem upgrade; cliente HTTP/3 força QUIC (-http3-only) \\
-k6 não gera carga HTTP/3 & Cliente QUIC em Docker (benchmarks/http3/); métricas normalizadas ao mesmo JSON dos resumos k6 \\
-Heterogeneidade de ferramentas entre protocolos & Access log do NGINX na sonda de uma célula (Capítulo~\ref{cap:resultados}); cabeçalho \textit{Server-Timing} emitido pela API e ausente dos arquivos de resultado \\
+Negociação HTTP/3 (Alt-Svc) vs comparação controlada & O h2load pede o protocolo na flag: \texttt{-{}-h1}, \texttt{-{}-alpn-list=h2} ou \texttt{-{}-h3} \\
+Um gerador por protocolo & h2load do nghttp2 1.70.0 no mesmo contêiner, com o JSON convertido ao esquema de aggregate.ts \\
+Observabilidade repartida entre cliente, NGINX e API & Access log do NGINX numa célula curta de cada protocolo (Capítulo~\ref{cap:resultados}); cabeçalho \textit{Server-Timing} emitido pela API e ausente dos arquivos de resultado \\
 \textit{Rate limiter} distorcendo testes de carga & BENCHMARK\_MODE=true (variável de ambiente ou docker-compose.bench.yml) \\
 Dois modos de deploy (host vs contêineres) & Modo \textit{host} para dev; modo bench obrigatório para netem simétrico em H/1.1, H/2 e H/3 \\
 Inicialização concorrente (dev:nginx) & NGINX pode registrar erros temporários de \textit{upstream} até a API subir; aguardar /health antes de medir \\
@@ -224,11 +224,11 @@ A Tabela~\ref{tab:mapeamento-metricas} relaciona as métricas da Seção~\ref{se
 \hline
 \textbf{Métrica} & \textbf{Fonte primária} & \textbf{Fonte complementar} \\
 \hline
-Latência & k6 (H/1.1, H/2); cliente QUIC (H/3, time\_total) & NGINX (\$request\_time) \\
-Tempo de resposta & k6; cliente QUIC (H/3) & Pino (durationMs) \\
-TTFB & k6; cliente QUIC (H/3) & Server-Timing; NGINX \\
-\textit{Throughput} & k6; cliente QUIC (H/3) & Bytes em /bench/payload e /bench/echo \\
-Requisições por \textasciitilde\ segundo & k6; cliente QUIC (H/3) & Pino \\
+Latência & h2load (p95 de \breaktok{performance.request}, em ms) & NGINX (\$request\_time) \\
+Tempo de resposta & h2load, o mesmo percentil nos três protocolos & Pino (durationMs) \\
+TTFB & Sem valor por requisição no JSON do h2load & Server-Timing; NGINX \\
+\textit{Throughput} & h2load (\breaktok{bytes_per_second}, cabeçalhos e corpo) & Bytes em /bench/payload e /bench/echo \\
+Requisições por \textasciitilde\ segundo & h2load (sucessos / duração do patamar) & Pino \\
 \hline
 \end{tabular}
 \fonte{Fonte: elaborado pelo autor.}
@@ -236,7 +236,7 @@ Requisições por \textasciitilde\ segundo & k6; cliente QUIC (H/3) & Pino \\
 
 \section{Cenários experimentais definidos}
 
-Esta seção descreve o desenho experimental planejado, organizado a partir das variáveis identificadas na literatura como determinantes do desempenho relativo entre HTTP/3, HTTP/2 e HTTP/1.1 (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). O artefato implementa a matriz completa documentada no repositório. A análise quantitativa reportada no Capítulo~\ref{cap:resultados} compreende a submatriz de rede degradada (GET /bench/ping, 50 VUs, quatro perfis netem) e a matriz de payload e de concorrência em rede ideal (clean), com dez réplicas por célula (Seção~\ref{sec:matriz-ideal}).
+Esta seção descreve o desenho experimental planejado, organizado a partir das variáveis identificadas na literatura como determinantes do desempenho relativo entre HTTP/3, HTTP/2 e HTTP/1.1 (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). O artefato implementa a matriz completa documentada no repositório. A análise quantitativa reportada no Capítulo~\ref{cap:resultados} compreende a submatriz de rede degradada (GET /bench/ping, 50 clientes, quatro perfis netem) e a matriz de payload e de concorrência em rede ideal (clean), com dez réplicas por célula (Seção~\ref{sec:matriz-ideal}).
 
 \subsection{Comparação entre protocolos}
 
@@ -248,11 +248,9 @@ O objetivo central do estudo é comparar HTTP/1.1, HTTP/2 e HTTP/3 sob condiçõ
 \item HTTP/3 - https://localhost:8443, sobre QUIC/UDP, anunciado pelo NGINX via Alt-Svc.
 \end{enumerate}
 
-Para tornar a comparação o mais justa possível, o roteiro fixa o mesmo contrato REST em todos os caminhos e altera o transporte na borda (TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). HTTP/1.1 e HTTP/2 utilizam https://localhost:8443 com k6. No HTTP/1.1 (PROTO=h1) o processo do k6 sobe com GODEBUG=http2client=0, e o ALPN oferece só http/1.1. No HTTP/2 (PROTO=h2) o k6 negocia h2. HTTP/3 é exercitado por cliente QUIC em contêiner Docker (benchmarks/http3/), pois o k6 não suporta QUIC, com métricas normalizadas ao mesmo esquema JSON dos resumos k6.
+Para tornar a comparação o mais justa possível, o roteiro fixa o mesmo contrato REST em todos os caminhos e altera o transporte na borda (TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). As campanhas do Capítulo~\ref{cap:resultados} usam o h2load contra https://nginx:8443 nos três protocolos. HTTP/1.1 sai com \texttt{-{}-h1}, HTTP/2 com \texttt{-{}-alpn-list=h2} e HTTP/3 com \texttt{-{}-h3}. Uma célula curta de cada protocolo deixou no access log do NGINX os valores HTTP/1.1, HTTP/2.0 e HTTP/3.0.
 
-As campanhas analisadas no Capítulo~\ref{cap:resultados} mediram HTTP/1.1 em http://localhost:3000, direto na API.
-
-Nos testes, a negociação automática foi deliberadamente evitada: o cliente de HTTP/1.1 não oferece h2, o de HTTP/2 não faz upgrade para HTTP/3 via Alt-Svc, e o de HTTP/3 força QUIC (-http3-only). O mecanismo de fallback entre versões não foi exercitado experimentalmente. O detalhamento operacional consta em benchmarks/README.md do repositório do artefato.
+Nos testes, a negociação automática foi deliberadamente evitada: cada execução pede um protocolo na flag, e o cliente de HTTP/2 não oferece http/1.1 no ALPN. O mecanismo de fallback entre versões não foi exercitado experimentalmente. O detalhamento operacional consta em benchmarks/README.md do repositório do artefato.
 
 \subsection{Variação de payload}
 
@@ -264,21 +262,21 @@ Inspirado em estudos que analisam \textit{payload} como variável experimental (
 \item 1 MB (1mb) - payload volumoso, para avaliar throughput de transferência.
 \end{enumerate}
 
-Essas dimensões são expostas pela rota GET /bench/payload/:size (download) e complementadas por POST /bench/echo (upload), permitindo avaliar o impacto do tamanho do corpo em ambas as direções de transferência. A matriz ideal executada neste TCC incluiu esses endpoints em rede clean, com 50 VUs, 60 s de duração e ramp-up de 10 s (npm run bench:run; Seção~\ref{sec:matriz-ideal}).
+Essas dimensões são expostas pela rota GET /bench/payload/:size (download) e complementadas por POST /bench/echo (upload), permitindo avaliar o impacto do tamanho do corpo em ambas as direções de transferência. A matriz ideal executada neste TCC incluiu esses endpoints em rede clean, com 50 clientes, patamar de 60 s e aquecimento de 10 s descartado (npm run bench:run; Seção~\ref{sec:matriz-ideal}).
 
 \subsection{Níveis de concorrência}
 
 A avaliação de desempenho foi organizada em duas campanhas: uma matriz de rede ideal (\textit{clean}) e uma matriz de rede degradada. 
 
-Na matriz ideal, a rota GET /bench/ping foi testada com 10, 50 e 100 usuários virtuais (VUs), enquanto a rota GET /bench/payload/:size, com payloads de 1 KB, 100 KB e 1 MB, e a rota POST /bench/echo, com corpo de 100 KB, foram avaliadas com 50 VUs. Essa campanha utilizou dez réplicas por célula, duração configurada de 60 s e \textit{ramp-up} de 10 s para os testes com k6. O cliente HTTP/3 iniciou as requisições sem uma etapa de \textit{ramp-up} equivalente. 
+Na matriz ideal, a rota GET /bench/ping foi testada com 10, 50 e 100 clientes, enquanto a rota GET /bench/payload/:size, com payloads de 1 KB, 100 KB e 1 MB, e a rota POST /bench/echo, com corpo de 100 KB, foram avaliadas com 50 clientes. Essa campanha utilizou dez réplicas por célula, patamar de 60 s e aquecimento de 10 s descartado, nos três protocolos. O intervalo entre réplicas foi de três minutos.
 
-Na campanha de rede degradada, a rota GET /bench/ping foi avaliada com 50 VUs nos protocolos HTTP/1.1, HTTP/2 e HTTP/3, considerando quatro perfis: \textit{clean}, atraso de 100 ms, perda de pacotes de 1\% e combinação de atraso de 100 ms com perda de pacotes de 1\%. Foram realizadas dez réplicas por combinação de protocolo e perfil de rede. Os arquivos individuais e os resumos agregados da campanha degradada estão disponíveis no diretório de resultados arquivados do projeto. O log preservado registra execuções k6 com duração total de 35 s distribuída em dois estágios, enquanto os resultados do cliente HTTP/3 indicam uma janela efetiva de aproximadamente 30 s. Na campanha degradada executada, os parâmetros foram 30 s de carga sustentada e ramp-up de 5 s no k6 (35 s totais nos dois estágios); o cliente HTTP/3 operou com duração de 30 s, sem ramp-up equivalente, conforme registrado em campaign.json e detalhado na Seção~\ref{sec:protocolo-coleta}.
+Na campanha de rede degradada, a rota GET /bench/ping foi avaliada com 50 clientes nos protocolos HTTP/1.1, HTTP/2 e HTTP/3, considerando quatro perfis: \textit{clean}, atraso de 100 ms, perda de pacotes de 1\% e combinação de atraso de 100 ms com perda de pacotes de 1\%. Foram realizadas dez réplicas por combinação de protocolo e perfil de rede. O patamar é de 60 s e o aquecimento descartado é de 10 s, nos três protocolos, com cooldown\_sec = 0, conforme campaign.json e a Seção~\ref{sec:protocolo-coleta}.
 
 \subsection{Rede degradada}\label{sec:rede-degradada-desenho}
 
-Estudos comparativos ressaltam que benefícios do HTTP/3 podem ser mais evidentes sob condições de rede degradada (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023). O cenário foi operacionalizado com tc netem encapsulado em Docker: API e NGINX executam na rede bench (docker-compose.bench.yml), e os scripts em benchmarks/netem/ aplicam o impairment no tráfego de saída voltado ao cliente, isentando o salto interno NGINX↔API. Os perfis definidos são: clean (controle, sem netem), lag\_100ms (atraso de 100 ms), loss\_1pct (perda de 1\%) e lag\_100ms\_loss\_1pct (combinação). A submatriz de rede degradada fixa GET /bench/ping, 50 VUs e os três protocolos.
+Estudos comparativos ressaltam que benefícios do HTTP/3 podem ser mais evidentes sob condições de rede degradada (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023). O cenário foi operacionalizado com tc netem encapsulado em Docker: API e NGINX executam na rede bench (docker-compose.bench.yml), e os scripts em benchmarks/netem/ aplicam o impairment no tráfego de saída voltado ao cliente, isentando o salto interno NGINX↔API. Os perfis definidos são: clean (controle, sem netem), lag\_100ms (atraso de 100 ms), loss\_1pct (perda de 1\%) e lag\_100ms\_loss\_1pct (combinação). A submatriz de rede degradada fixa GET /bench/ping, 50 clientes e os três protocolos.
 
-A submatriz degradada exige o modo campanha (contêineres na rede bench). O roteiro completo - comandos, parâmetros -Reps, -Duration e -Ramp, e agregação - está documentado em benchmarks/README.md e nos runners benchmarks/scripts/run-degraded.ps1 e run-all.ps1. A campanha degradada sobrescreveu os padrões do runner (60 s e ramp-up de 10 s) para 30 s e 5 s, mantendo dez réplicas por célula. A matriz ideal, disparada por npm run bench:run, usou as mesmas dez réplicas por célula, 60 s de duração, ramp-up de 10 s e intervalo de três minutos entre réplicas. Ambas as campanhas são analisadas no Capítulo~\ref{cap:resultados}.
+A submatriz degradada exige o modo campanha (contêineres na rede bench). O roteiro completo, com os parâmetros -Reps, -Duration e -Ramp e a agregação, está documentado em benchmarks/README.md e nos runners benchmarks/scripts/run-degraded.ps1 e run-all.ps1. Nas duas campanhas, -Duration 60 e -Ramp 10 fixam o patamar e o prefixo descartado. A degradada usou -NoPause (cooldown\_sec = 0). A matriz ideal usou dez réplicas por célula e intervalo de três minutos entre réplicas. Ambas são analisadas no Capítulo~\ref{cap:resultados}. Em nginx.bench.conf, keepalive\_requests está em 1000000, porque o default 1000 fecha a conexão e o h2load não abre outra.
 
 \subsection{Considerações sobre reprodutibilidade e análise estatística}
 

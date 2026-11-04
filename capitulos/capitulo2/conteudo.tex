@@ -84,7 +84,7 @@ A avaliação comparativa de protocolos HTTP exige a definição clara de métri
 \item requisições por segundo: capacidade do sistema sob carga, medindo escalabilidade e estabilidade.
 \end{enumerate}
 
-Essas métricas orientam a fase experimental deste estudo. A coleta principal utiliza o k6 para HTTP/1.1 e HTTP/2. Já o HTTP/3 é exercitado por um cliente QUIC dedicado, pois o k6 não gera carga sobre QUIC. O detalhamento operacional das ferramentas, dos perfis de carga e dos cenários executados consta no Capítulo~\ref{cap:metodologia}. A literatura ressalta que os ganhos do HTTP/3 tendem a ser mais expressivos em alta latência ou largura de banda limitada (PERNA et al., 2022) e, sob rede severamente degradada, em operações GET com alta concorrência (ZAHRA; ARDIANSYAH, 2026). Em condições ideais, com alta concorrência e payload médio, a diferença pode se inverter em favor do HTTP/2, conforme a implementação (ZAHRA; ARDIANSYAH, 2026).
+Essas métricas orientam a fase experimental deste estudo. A coleta principal utiliza o h2load do nghttp2 1.70.0 para HTTP/1.1, HTTP/2 e HTTP/3. O detalhamento operacional das ferramentas, dos perfis de carga e dos cenários executados consta no Capítulo~\ref{cap:metodologia}. A literatura ressalta que os ganhos do HTTP/3 tendem a ser mais expressivos em alta latência ou largura de banda limitada (PERNA et al., 2022) e, sob rede severamente degradada, em operações GET com alta concorrência (ZAHRA; ARDIANSYAH, 2026). Em condições ideais, com alta concorrência e payload médio, a diferença pode se inverter em favor do HTTP/2, conforme a implementação (ZAHRA; ARDIANSYAH, 2026).
 
 \section{Discussão}
 
