@@ -294,6 +294,42 @@ Os dados registram o comportamento fim a fim do arranjo medido, com o mesmo gera
 
 Os resultados informam a decisão sobre como expor HTTP/3 (proxy, certificados, UDP, observabilidade) e, nas células em que o teste separa HTTP/2 e HTTP/3, o sentido dessa diferença. A integração por proxy introduz custos operacionais discutidos na literatura (MUÑOZ et al., 2025; TRIPATHI; MIRAZ; JOSHI, 2023). O middleware coloca o cabeçalho Server-Timing: app;dur antes de enviar os cabeçalhos da resposta, com o tempo decorrido até esse instante. Ao terminar a resposta, o middleware registra durationMs no log Pino e, quando METRICS\_FILE está definido, em um arquivo NDJSON. Os resumos do h2load e as pastas de resultado não trazem app;dur nem durationMs. O arquivo \breaktok{docker-compose.bench.yml} não define METRICS\_FILE.
 
+\section{Negociação por Alt-Svc}\label{sec:alt-svc}
+
+Em 4 de novembro de 2026, fora das campanhas de carga, uma sonda usou o modo host: a API no host e o NGINX de docker-compose.yml, no projeto quicbench-host. O cliente foi o curl 8.11.0-DEV da imagem alpine/curl-http3, com quiche 0.22.0 e \texttt{-{}-alt-svc}, em \breaktok{https://host.docker.internal:8443/bench/ping}. O cabeçalho \texttt{server} das respostas foi nginx/1.31.8. A primeira requisição pediu \texttt{-{}-http2} com o cache vazio. A segunda usou o cache gravado, sem \texttt{-{}-http2} e sem \texttt{-{}-http3}. A terceira repetiu a segunda depois de o contêiner subir de novo publicando só 8443/tcp. As três respostas trouxeram \texttt{alt-svc: h3=\string":8443\string"; ma=2592000} e o corpo \texttt{\{\string"ok\string":true\}}. Em cada uma, o \texttt{http\_version} do curl e o \texttt{protocol} do NGINX coincidem. A Tabela~\ref{tab:alt-svc} reúne esses valores.
+
+\begin{table}[H]
+\centering
+\caption{Sonda Alt-Svc, GET /bench/ping, modo host}\label{tab:alt-svc}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{34mm}>{\centering\arraybackslash}p{24mm}>{\centering\arraybackslash}p{16mm}>{\centering\arraybackslash}p{20mm}>{\centering\arraybackslash}p{24mm}>{\centering\arraybackslash}p{16mm}@{}}
+\hline
+\textbf{Requisição} & \textbf{http\_version} & \textbf{status} & \textbf{Alt-Svc} & \textbf{protocol} & \textbf{h3} \\
+\hline
+1, \texttt{-{}-http2} & 2 & 200 & presente & HTTP/2.0 & \texttt{\string"\string"} \\
+2, cache & 3 & 200 & presente & HTTP/3.0 & \texttt{h3} \\
+3, só TCP & 2 & 200 & presente & HTTP/2.0 & \texttt{\string"\string"} \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor (benchmarks/results/alt-svc-fallback/2026-11-04\_01-30-34/, arquivos headers-1.txt, headers-2.txt, headers-3.txt, writeout-1.txt, writeout-2.txt, writeout-3.txt, nginx-1.txt, nginx-2.txt e nginx-3.txt). nginx-2.txt também contém a linha das 04:30:36 UTC.}
+\end{table}
+
+Na segunda requisição, o verbose traz a troca de h2 para h3 e a linha \texttt{using HTTP/3}:
+
+\begin{lstlisting}
+Alt-svc connecting from [h2]host.docker.internal:8443 to [h3]host.docker.internal:8443
+using HTTP/3
+\end{lstlisting}
+
+O access log às 04:30:39 UTC tem \texttt{protocol=\string"HTTP/3.0\string"} e \texttt{h3=\string"h3\string"}. Na terceira, com só TCP publicado, o verbose abre com a linha abaixo, oferece ALPN \texttt{h2,http/1.1} e o servidor aceita \texttt{h2}. Esse verbose não tem linha de erro QUIC.
+
+\begin{lstlisting}
+Alt-svc connecting from [h3]host.docker.internal:8443 to [h3]host.docker.internal:8443
+\end{lstlisting}
+
+O access log às 04:31:17 UTC tem uma linha, \texttt{protocol=\string"HTTP/2.0\string"} e \texttt{h3=\string"\string"}. Com 8443/udp publicado de novo, um \texttt{curl -{}-http3-only} às 04:31:57 UTC registrou \texttt{protocol=\string"HTTP/3.0\string"}, \texttt{h3=\string"h3\string"} e status 200. Essa chamada não usa \texttt{-{}-alt-svc}.
+
 \section{Ameaças à validade e limitações}\label{sec:ameacas-validade}
 
 A submatriz degradada restringiu-se a GET /bench/ping com 50 clientes e quatro perfis netem (Seções~\ref{sec:submatriz-clean} e~\ref{sec:rede-degradada-resultados}). A matriz ideal avaliou payload (1 KB, 100 KB, 1 MB), POST /bench/echo e concorrência (10, 50 e 100 clientes) apenas em rede clean (Seção~\ref{sec:matriz-ideal}), sem combinar essas dimensões com netem. Combinações completas de payload e concorrência sob todos os perfis degradados permanecem fora do escopo quantitativo deste trabalho. As duas campanhas não se cruzam.

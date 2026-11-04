@@ -250,7 +250,7 @@ O objetivo central do estudo é comparar HTTP/1.1, HTTP/2 e HTTP/3 sob condiçõ
 
 Para tornar a comparação o mais justa possível, o roteiro fixa o mesmo contrato REST em todos os caminhos e altera o transporte na borda (TRIPATHI; MIRAZ; JOSHI, 2023; PERNA et al., 2022). As campanhas do Capítulo~\ref{cap:resultados} usam o h2load contra https://nginx:8443 nos três protocolos. HTTP/1.1 sai com \texttt{-{}-h1}, HTTP/2 com \texttt{-{}-alpn-list=h2} e HTTP/3 com \texttt{-{}-h3}. Uma célula curta de cada protocolo deixou no access log do NGINX os valores HTTP/1.1, HTTP/2.0 e HTTP/3.0.
 
-Nos testes, a negociação automática foi deliberadamente evitada: cada execução pede um protocolo na flag, e o cliente de HTTP/2 não oferece http/1.1 no ALPN. O mecanismo de fallback entre versões não foi exercitado experimentalmente. O detalhamento operacional consta em benchmarks/README.md do repositório do artefato.
+Nos testes de carga, a negociação automática foi deliberadamente evitada: cada execução pede um protocolo na flag, e o cliente de HTTP/2 não oferece http/1.1 no ALPN. Uma sonda em 4 de novembro de 2026, no modo host, usou o curl 8.11.0-DEV da imagem alpine/curl-http3 com \texttt{-{}-alt-svc} em \breaktok{https://host.docker.internal:8443/bench/ping}. A primeira requisição usou \texttt{-{}-http2}. A segunda usou o cache dessa resposta, sem \texttt{-{}-http2} e sem \texttt{-{}-http3}. A terceira repetiu a segunda com o NGINX publicando só 8443/tcp. Os arquivos estão em benchmarks/results/alt-svc-fallback/2026-11-04\_01-30-34/. A Seção~\ref{sec:alt-svc} registra o protocolo de cada uma. Os comandos estão em benchmarks/README.md.
 
 \subsection{Variação de payload}
 
