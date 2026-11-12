@@ -76,7 +76,7 @@ Critérios de exclusão:
 \item pré-prints sem revisão por pares, exceto quando citados como complemento a versões publicadas.
 \end{enumerate}
 
-A leitura integral dos estudos empíricos seguiu o checklist da Tabela~\ref{tab:criterios-qualidade}. Os três critérios vêm da avaliação de qualidade de Kitchenham e Charters (2007). Em revisão rápida, Cartaxo, Pinto e Soares (2020) admitem um checklist mais curto. As RFC 9000 e RFC 9114 ficam fora desse checklist e entram na revisão só como normas.
+A leitura integral dos estudos empíricos seguiu o checklist da Tabela~\ref{tab:criterios-qualidade}. Os três critérios foram elaborados pelo autor. Kitchenham e Charters (2007) orientam o revisor a montar o próprio checklist e a escolher as perguntas adequadas à questão de pesquisa. Cartaxo, Pinto e Soares (2020) admitem um único revisor na seleção, na avaliação de qualidade e na extração, e pedem que o viés de seleção seja declarado. As RFC 9000 e RFC 9114 ficam fora desse checklist e entram na revisão só como normas.
 
 \begin{table}[htbp]
 \centering
@@ -164,8 +164,8 @@ Esta seção apresenta os resultados da revisão, organizados em base normativa 
 \hline
 \textbf{Documento} & \textbf{Ano} & \textbf{Contribuição} \\
 \hline
-(QUIC Working Group -- IETF, 2021) & 2021 & RFC 9000 --- especificação QUIC (UDP, TLS 1.3, \textit{streams}) \\
-(IETF, 2022) & 2022 & RFC 9114 --- mapeamento HTTP sobre QUIC \\
+(IYENGAR; THOMSON, 2021) & 2021 & RFC 9000 --- especificação QUIC (UDP, TLS 1.3, \textit{streams}) \\
+(BISHOP, 2022) & 2022 & RFC 9114 --- mapeamento HTTP sobre QUIC \\
 \hline
 \end{tabular}
 \fonte{Fonte: elaborado pelo autor.}
@@ -182,34 +182,34 @@ Esta seção apresenta os resultados da revisão, organizados em base normativa 
 (PERNA et al., 2022) & 2022 & Medição & Adoção e desempenho do HTTP/3 em larga escala na web \\
 (TRIPATHI; MIRAZ; JOSHI, 2023) & 2023 & Medição & Latência HTTP/3 vs HTTP/1.1 em APIs RESTful \\
 (CHATZOGLOU et al., 2023) & 2023 & Análise & Segurança do HTTP/3 comparado ao HTTP/2 \\
-(KOCH; FALOWO; ELROD, 2024) & 2024 & Revisão & Estado da implementação e adoção do HTTP/3 \\
-(ZHANG et al., 2025) & 2025 & Revisão & Desempenho, limitações e melhorias do HTTP/3 \\
+(KOCH; FALOWO; ELROD, 2024) & 2024 & Revisão & Implementação do HTTP/3 e suporte a UDP \\
+(ZHANG et al., 2025) & 2025 & Medição & Desempenho, limitações e melhorias do HTTP/3 \\
 (YU; BENSON, 2021) & 2021 & Medição & QUIC/HTTP/3 em produção (grandes provedores) \\
 (TREVISAN et al., 2021) & 2021 & Medição & Adoção e desempenho do HTTP/3 em escala \\
-(MUÑOZ et al., 2025) & 2025 & Medição & HTTP/3 vs HTTP/2 com \textit{proxy} \\
+(LIU et al., 2025) & 2025 & Medição & HTTP/3 vs HTTP/2 com \textit{proxy} \\
 (ZAHRA; ARDIANSYAH, 2026) & 2026 & Medição & Latência e \textit{throughput} em APIs REST (H/3 vs H/2) \\
 \hline
 \end{tabular}
-\fonte{Fonte: elaborado pelo autor. Tipo indica natureza predominante do documento (medição experimental, revisão ou análise comparativa).}
+\fonte{Fonte: elaborado pelo autor. Tipo indica natureza predominante do documento (medição experimental, revisão ou análise comparativa). Perna et al. (2022) estendem Trevisan et al. (2021).}
 \end{table}
 
 \subsection{Desempenho e latência}
 
 \begin{sloppypar}
-No eixo de desempenho, predominam estudos de medição (TRIPATHI; MIRAZ; JOSHI, 2023; ZAHRA; ARDIANSYAH, 2026; YU; BENSON, 2021; PERNA et al., 2022) e revisões que sintetizam limitações (ZHANG et al., 2025). Tripathi, Miraz e Joshi (2023) compararam latência de APIs RESTful em HTTP/3 e HTTP/1.1, observando ganhos de eficiência de comunicação. Zhang et al. (2025) reúnem mecanismos de melhoria e restrições de desempenho. Zahra e Ardiansyah (2026) evidenciam a dependência de contexto: sob rede severamente degradada, relatam redução de latência de até 31,2\% com HTTP/3 frente ao HTTP/2, em especial em operações GET com alta concorrência, enquanto em condições ideais, com alta concorrência e payload médio, o HTTP/2 pode superar o HTTP/3 --- resultado que orienta a matriz experimental com netem e variação de payload neste TCC.
+Tripathi, Miraz e Joshi (2023) compararam a latência de uma API REST em HTTP/3 e HTTP/1.1. A melhora que registram vem do QUIC e da velocidade de download. Zhang et al. (2025) descrevem o desempenho em rede normal e em rede fraca, e propõem medidas de melhoria. Zahra e Ardiansyah (2026) comparam HTTP/3 e HTTP/2 sob rede degradada e sob rede ideal. Sob rede severamente degradada, a latência do HTTP/3 fica até 31,2\% abaixo da do HTTP/2, sobretudo em GET com alta concorrência. Em rede ideal, com alta concorrência e payload médio, o HTTP/2 pode ficar à frente. Essa diferença orienta a matriz experimental com netem e variação de payload neste TCC.
 \end{sloppypar}
 
 \subsection{Adoção e implementação}
 
-Estudos de medição em larga escala (PERNA et al., 2022) e a revisão de Koch, Falowo e Elrod (2024) indicam adoção crescente do HTTP/3, com ganhos práticos que variam conforme as condições de rede e a infraestrutura (PERNA et al., 2022). Koch, Falowo e Elrod (2024) discutem barreiras de implementação e adoção do HTTP/3, em especial o suporte incompleto ao tráfego UDP em aplicações e serviços, ponto que motiva a escolha de proxy reverso no artefato Node.js.
+Perna et al. (2022) estendem a medição de Trevisan et al. (2021). Alongam a série até 2021 e incluem navegação móvel e streaming de vídeo. Perna et al. (2022) mediram a adoção do HTTP/3 em Google, Facebook e Cloudflare, e registraram ganhos que variam com a rede e com o site. Trevisan et al. (2021) mediram um aumento lento nos primeiros quatro meses, até cerca de 0,7\% dos sites, então só com Google e Facebook. Em fevereiro de 2020 a parcela subiu com a Cloudflare, passou de 4\% e chegou a 4,8\% (203 mil sites) em outubro; em novembro, com a suspensão do suporte pela Cloudflare, caiu para menos de 0,1\% (4\,024 sites). Koch, Falowo e Elrod (2024) registram o suporte incompleto das aplicações ao tráfego UDP, barreira considerada na escolha do \textit{proxy} reverso deste TCC.
 
 \subsection{Segurança}
 
-Chatzoglou et al. (2023) conduzem análise comparativa de segurança entre HTTP/3 e HTTP/2, com implicações para APIs expostas publicamente, terminação TLS na borda e configuração de certificados em proxies - aspectos relevantes ao NGINX utilizado no estudo de caso.
+Chatzoglou et al. (2023) comparam a segurança de HTTP/3 e de HTTP/2. Na revisão de ataques, examinam ataques ao HTTP/2, se eles se transferem ao HTTP/3, e o uso de certificado TLS forjado para ler tráfego cifrado. No experimento, montam um testbed com seis servidores HTTP/3, entre eles o Nginx, e testam ataques contra esses servidores.
 
 \subsection{Migração e arquitetura}
 
-Yu e Benson (2021) mostram, por medição em produção, que o desempenho depende do algoritmo de congestionamento e da implementação do servidor - fator relevante também em arquiteturas com terminação na borda. Muñoz et al. (2025) comparam HTTP/3 e HTTP/2 com integração de proxy, abordagem alinhada à estratégia adotada neste TCC. As normas (QUIC Working Group - IETF, 2021; IETF, 2022) fundamentam semanticamente essa migração, mas não substituem evidência empírica sobre Node.js.
+Yu e Benson (2021) mostram, por medição em produção, que o desempenho depende do algoritmo de congestionamento e da implementação do servidor. Liu et al. (2025) comparam HTTP/3 e HTTP/2 com um \textit{proxy} reverso Envoy no caminho. Em rede ideal, no download de 10 MB, o \textit{proxy} acrescenta um atraso de 0 a 1 s, um pouco maior no HTTP/3, porque o suporte do Envoy a HTTP/3 era experimental e o de HTTP/2 já estava otimizado. Sob 4\% de perda e 50 ms de atraso, o HTTP/3 conclui o download em cerca de 15 s. O HTTP/2, sem \textit{proxy}, leva cerca de 106 s. Com \textit{proxy} e BBR, esse tempo cai para cerca de 10 s. Cubic e New Reno não repetem o ganho, e o HTTP/3 permanece estável entre os algoritmos. As normas (IYENGAR; THOMSON, 2021; BISHOP, 2022) definem o transporte e a semântica dessa migração. A medição com Node.js é conduzida no estudo de caso deste trabalho.
 
 \section{Conclusão}
 
