@@ -94,7 +94,7 @@ HTTP/3 & 101,1 & 0,02 & 479 \\
 \fonte{Fonte: elaborado pelo autor (agregação de benchmarks/results/2026-11-03\_02-54-34/summary.csv).}
 \end{table}
 
-No perfil combinado, o p95 mediano é 101,2 ms, 101,2 ms e 101,1 ms, e a taxa mediana é 481, 481 e 479 req/s. O IQR do p95 fica em 0,07 ms, 0,12 ms e 0,02 ms. A literatura aponta que ganhos relativos de HTTP/3 dependem do contexto de rede e da carga (ZAHRA; ARDIANSYAH, 2026; TRIPATHI; MIRAZ; JOSHI, 2023), sem implicar superioridade universal.
+No perfil combinado, o p95 mediano é 101,2 ms, 101,2 ms e 101,1 ms, e a taxa mediana é 481, 481 e 479 req/s. O IQR do p95 fica em 0,07 ms, 0,12 ms e 0,02 ms. Zahra e Ardiansyah (2026) mostram que o ganho do HTTP/3 depende da rede e da carga: em rede ideal, com alta concorrência e payload médio, o HTTP/2 pode ficar à frente.
 
 A Figura~\ref{fig:p95-submatriz} sintetiza o p95 mediano de duração por protocolo nos quatro perfis da submatriz degradada.
 
@@ -217,9 +217,9 @@ POST echo 100 KB & HTTP/3 & 0,82 MB/s \\
 
 \section{Análise e discussão}\label{sec:analise-discussao}
 
-Acerca da viabilidade e integração (QP1 e QP4), as campanhas em rede clean e degradada mostram o caminho HTTP/3 operacional. A mediana da taxa de falha é nula em cada célula de HTTP/3. Das 110 execuções de HTTP/3, uma, no perfil loss\_1pct, registrou taxa 0,134 (Seção~\ref{sec:protocolo-coleta}). O artefato (API, NGINX, Docker e o h2load) foi executado com o mesmo roteiro na mesma estação, em duas campanhas independentes. A estratégia de proxy reverso materializa uma migração incremental sem alterar o backend Node.js, alinhada a estudos com integração de proxy (MUÑOZ et al., 2025).
+Acerca da viabilidade e integração (QP1 e QP4), as campanhas em rede clean e degradada mostram o caminho HTTP/3 operacional. A mediana da taxa de falha é nula em cada célula de HTTP/3. Das 110 execuções de HTTP/3, uma, no perfil loss\_1pct, registrou taxa 0,134 (Seção~\ref{sec:protocolo-coleta}). O artefato (API, NGINX, Docker e o h2load) foi executado com o mesmo roteiro na mesma estação, em duas campanhas independentes. O proxy reverso deste trabalho termina o HTTP/3 na borda e mantém o backend Node.js.
 
-HTTP/2 e HTTP/3 foram comparados em cada condição, com as dez réplicas de cada protocolo (Tabelas~\ref{tab:mann-whitney-submatriz} e~\ref{tab:mann-whitney-ideal}). Uma condição reúne endpoint, clientes e perfil de rede, dentro de uma mesma campanha. O delta de Cliff é a diferença entre a proporção de pares em que o valor de HTTP/2 é maior e a proporção em que é menor (CLIFF, 1993). No p95, $\delta$ negativo indica latência menor no HTTP/2. Na taxa de requisições, $\delta$ positivo indica taxa maior no HTTP/2. O teste de Mann-Whitney é bilateral (MANN; WHITNEY, 1947), com nível de significância de 0,05 por métrica, sem correção entre condições nem entre as duas métricas.
+HTTP/2 e HTTP/3 foram comparados em cada condição, com as dez réplicas de cada protocolo (Tabelas~\ref{tab:mann-whitney-submatriz} e~\ref{tab:mann-whitney-ideal}). Uma condição reúne endpoint, clientes e perfil de rede, dentro de uma mesma campanha. O delta de Cliff é a diferença entre a proporção de pares em que o valor de HTTP/2 é maior e a proporção em que é menor (CLIFF, 1993). No p95, $\delta$ negativo indica latência menor no HTTP/2. Na taxa de requisições, $\delta$ positivo indica taxa maior no HTTP/2. Este estudo aplica o teste de Mann-Whitney na forma bilateral, com nível de significância de 0,05 por métrica, sem correção entre condições nem entre as duas métricas.
 
 \begin{table}[H]
 \centering
@@ -290,9 +290,9 @@ Linhas HTTP/3 no access log & 5565 \\
 \fonte{Fonte: elaborado pelo autor (benchmarks/results/probe-h3-client-split/nginx-timing-summary.json, calculado sobre nginx-access.txt). Tempos do NGINX com resolução de 1 ms. CPU conforme docker stats, em 23 amostras; 100\% corresponde a um núcleo. As 5565 linhas HTTP/3 retornaram status 200, o mesmo http\_reqs\_count do cliente.}
 \end{table}
 
-Os dados registram o comportamento fim a fim do arranjo medido, com o mesmo gerador e o mesmo NGINX nos três protocolos, em linha com evidências contextuais da literatura (ZAHRA; ARDIANSYAH, 2026; PERNA et al., 2022; TRIPATHI; MIRAZ; JOSHI, 2023; ZHANG et al., 2025). A leitura continua sujeita à Seção~\ref{sec:ameacas-validade}: uma estação, localhost em Docker, e matriz ideal e submatriz que não se cruzam.
+Os dados registram o comportamento fim a fim deste arranjo, com o mesmo gerador e o mesmo NGINX nos três protocolos. Zahra e Ardiansyah (2026) registram, sob rede severamente degradada, latência do HTTP/3 até 31,2\% abaixo da do HTTP/2, sobretudo em GET com alta concorrência. Em rede ideal, com alta concorrência e payload médio, os mesmos autores registram que o HTTP/2 pode ficar à frente. Perna et al. (2022) registraram ganhos que variam com a rede e com o site. A leitura continua sujeita à Seção~\ref{sec:ameacas-validade}: uma estação, localhost em Docker, e matriz ideal e submatriz que não se cruzam.
 
-Os resultados informam a decisão sobre como expor HTTP/3 (proxy, certificados, UDP, observabilidade) e, nas células em que o teste separa HTTP/2 e HTTP/3, o sentido dessa diferença. A integração por proxy introduz custos operacionais discutidos na literatura (MUÑOZ et al., 2025; TRIPATHI; MIRAZ; JOSHI, 2023). O middleware coloca o cabeçalho Server-Timing: app;dur antes de enviar os cabeçalhos da resposta, com o tempo decorrido até esse instante. Ao terminar a resposta, o middleware registra durationMs no log Pino e, quando METRICS\_FILE está definido, em um arquivo NDJSON. Os resumos do h2load e as pastas de resultado não trazem app;dur nem durationMs. O arquivo \breaktok{docker-compose.bench.yml} não define METRICS\_FILE.
+Os resultados informam a decisão sobre como expor HTTP/3 neste arranjo: proxy, certificados, UDP e observabilidade. Nas células em que o teste separa HTTP/2 e HTTP/3, indicam o sentido dessa diferença. O middleware coloca o cabeçalho Server-Timing: app;dur antes de enviar os cabeçalhos da resposta, com o tempo decorrido até esse instante. Ao terminar a resposta, o middleware registra durationMs no log Pino e, quando METRICS\_FILE está definido, em um arquivo NDJSON. Os resumos do h2load e as pastas de resultado não trazem app;dur nem durationMs. O arquivo \breaktok{docker-compose.bench.yml} não define METRICS\_FILE.
 
 \section{Negociação por Alt-Svc}\label{sec:alt-svc}
 

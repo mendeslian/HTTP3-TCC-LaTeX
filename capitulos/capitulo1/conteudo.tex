@@ -4,21 +4,21 @@
 
 Nos tempos atuais, a evolução tecnológica recente tem sido orientada pela crescente e constante demanda por aplicações \textit{web} mais rápidas, escaláveis e confiáveis. Nesse sentido, a comunicação entre sistemas distribuídos passou a ganhar espaço próprio, sobretudo em razão da expansão de serviços digitais, plataformas \textit{online} e aplicações em nuvem. Assim, a eficiência da troca de informações entre clientes e servidores passou a afetar diretamente a experiência do usuário e o desempenho desses sistemas.
 
-Neste cenário, as \textit{Application}\textit{ }\textit{Programming}\textit{ Interfaces} (APIs) se tornaram um dos principais meios de integração entre sistemas. A popularização dessas arquiteturas baseadas em serviços, como microsserviços, ampliou a necessidade de protocolos capazes de lidar com grandes volumes de requisições e de manter baixa latência nas respostas (TRIPATHI; MIRAZ; JOSHI, 2023).
+Neste cenário, as \textit{Application}\textit{ }\textit{Programming}\textit{ Interfaces} (APIs) se tornaram um dos principais meios de integração entre sistemas. A popularização dessas arquiteturas baseadas em serviços, como microsserviços, ampliou a necessidade de protocolos capazes de lidar com grandes volumes de requisições e de manter baixa latência nas respostas.
 
-Essas demandas têm sido acompanhadas dos protocolos de comunicação web, cuja evolução é crescente diante das novas versões voltadas a desempenho, segurança e confiabilidade. Contudo, a adoção dessas inovações nem sempre chega de imediato aos ambientes de desenvolvimento mais utilizados, o que levanta questões sobre sua viabilidade prática e sobre os desafios de implementação (KOCH; FALOWO; ELROD, 2024).
+Essas demandas têm sido acompanhadas da evolução dos protocolos de comunicação web, com versões voltadas a desempenho, segurança e confiabilidade. A adoção prática dessas versões depende da implementação. Koch, Falowo e Elrod (2024) registram, entre as barreiras, o suporte incompleto das aplicações ao tráfego UDP.
 
 \section{Problema investigado}
 
-Entre as novas versões de protocolos \textit{web}, destaca-se o HTTP/3, que altera substancialmente o modo com que a comunicação é estabelecida ao adotar o QUIC sobre UDP como transporte (QUIC Working Group - IETF, 2021; IETF, 2022). Entretanto, os benefícios a ele relacionados, como a redução de latência e maior resiliência em redes instáveis, ainda não chegaram de forma efetiva a ambientes consolidados no desenvolvimento \textit{web}, como no caso do Node.js, o qual não oferece suporte nativo estável ao protocolo (KOCH; FALOWO; ELROD, 2024).
+Entre as novas versões de protocolos \textit{web}, destaca-se o HTTP/3, que adota o QUIC sobre UDP como transporte (IYENGAR; THOMSON, 2021; BISHOP, 2022). No Node.js, esse protocolo não tem suporte nativo estável (NODE.JS, 2025, 2026e).
 
-Essa limitação evidencia, assim, uma lacuna entre a evolução dos protocolos e sua adoção prática em ecossistemas utilizados amplamente. Deste cenário, emergem questionamentos acerca da viabilidade do HTTP/3 em aplicações reais, especialmente em projetos que se utilizam de \textit{frameworks} populares e que dependem de infraestruturas intermediárias, como \textit{proxies} reversos e \textit{gateways} (TRIPATHI; MIRAZ; JOSHI, 2023).
+Permanece em aberto a viabilidade do HTTP/3 em aplicações reais, em especial naquelas que utilizam \textit{frameworks} populares e um \textit{proxy} reverso ou um \textit{gateway}.
 
 Logo, este trabalho visa investigar o problema de incorporação do HTTP/3, sobretudo em contextos os quais não foram projetados para suportá-lo, destacando quais os desafios técnicos, as limitações e as estratégias possíveis para viabilizar a sua adoção em aplicações baseadas em Node.js.
 
 \section{Motivação}
 
-O HTTP persiste como o principal canal de comunicação na \textit{web}, de modo que o HTTP/3 sobre QUIC representa um avanço adicional no que tange a desempenho e a resiliência em redes adversas (PERNA et al., 2022; QUIC Working Group - IETF, 2021). No Node.js, entretanto, essa evolução ainda carece de meios alternativos de viabilização da integração. Surge, assim, a motivação do presente trabalho, a qual advém da necessidade de examinar justamente essa transição em APIs REST - um cenário típico de microsserviços - no qual definir quando e como expor o HTTP/3 sem reescrever o \textit{backend} representa um desafio prático para as equipes de desenvolvimento.
+O HTTP persiste como o principal canal de comunicação na \textit{web}, de modo que o HTTP/3 sobre QUIC representa um avanço adicional no que tange a desempenho e a resiliência em redes adversas (PERNA et al., 2022; IYENGAR; THOMSON, 2021). No Node.js, entretanto, essa evolução ainda carece de meios alternativos de viabilização da integração. Surge, assim, a motivação do presente trabalho, a qual advém da necessidade de examinar justamente essa transição em APIs REST - um cenário típico de microsserviços - no qual definir quando e como expor o HTTP/3 sem reescrever o \textit{backend} representa um desafio prático para as equipes de desenvolvimento.
 
 \section{Objetivo}\label{sec:objetivo}
 
@@ -60,14 +60,14 @@ Este trabalho se baseia em uma abordagem experimental, através da combinação 
 No que tange ao eixo teórico, o Capítulo~\ref{cap:fundamentacao} busca apresentar a fundamentação sobre HTTP, QUIC e HTTP/3, Node.js, APIs REST e métricas de desempenho; enquanto o Capítulo~\ref{cap:revisao} conduz a revisão rápida da literatura (KITCHENHAM; CHARTERS, 2007; CARTAXO; PINTO; SOARES, 2020), com protocolo de busca, critérios de inclusão e síntese temática.
 
 \begin{sloppypar}
-Já em relação ao eixo prático, foi implementado um artefato reprodutível (API Node.js, NGINX, Docker e roteiros de coleta) descrito no Capítulo~\ref{cap:metodologia}. O HTTP/3 é exposto na borda por proxy reverso, pois o \textit{runtime} não oferece suporte nativo estável ao protocolo (KOCH; FALOWO; ELROD, 2024).
+Já em relação ao eixo prático, foi implementado um artefato reprodutível (API Node.js, NGINX, Docker e roteiros de coleta) descrito no Capítulo~\ref{cap:metodologia}. O HTTP/3 é exposto na borda por proxy reverso, pois o \textit{runtime} não oferece suporte nativo estável ao protocolo (NODE.JS, 2025, 2026e).
 \end{sloppypar}
 
 As campanhas de carga utilizam o h2load do nghttp2 1.70.0 para HTTP/1.1, HTTP/2 e HTTP/3, contra o mesmo NGINX, em matriz clean (variação de payload e concorrência) e submatriz com tc netem (perfis de latência e perda). Cada célula reportada resume dez réplicas pela mediana e pelo intervalo interquartil (IQR). A comparação entre HTTP/2 e HTTP/3, em cada condição, usa o teste de Mann-Whitney e o delta de Cliff. A análise comparativa e as ameaças à validade estão representadas no Capítulo~\ref{cap:resultados}.
 
 \section{Justificativa}
 
-Tendo-se em vista que a evolução dos protocolos \textit{web} exige que equipes de desenvolvimento compreendam como integrar HTTP/3 em stacks já consolidadas, sem reescrever aplicações inteiras, este trabalho se justifica pela reunião de evidências bibliográficas e empíricas acerca do desempenho e da migração em APIs REST (PERNA et al., 2022; TRIPATHI; MIRAZ; JOSHI, 2023; MUÑOZ et al., 2025), além de disponibilizar artefato e roteiros reprodutíveis que apoiam decisões técnicas e pesquisas posteriores sobre Node.js e proxy reverso. 
+Tendo-se em vista que equipes com aplicação já em produção precisam compreender como expor HTTP/3 sem reescrever o \textit{backend}, este trabalho se justifica pela reunião de três evidências já publicadas e de um artefato reproduzível. Perna et al. (2022) mediram a adoção e o desempenho do HTTP/3 na web; Tripathi, Miraz e Joshi (2023) compararam a latência de uma API REST em HTTP/3 e em HTTP/1.1; Liu et al. (2025) compararam HTTP/3 e HTTP/2 com um proxy reverso no caminho. O artefato e os roteiros permanecem disponíveis para repetir a medição em Node.js. 
 
 \section{Contribuições}
 
