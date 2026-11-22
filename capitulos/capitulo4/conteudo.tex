@@ -21,7 +21,7 @@ O ambiente experimental foi delimitado a um cenário controlado de laboratório,
 \begin{enumerate}[label=\alph*)]
 \item viabilidade (QP1) - verificar se HTTP/3 pode ser utilizado com Node.js por meio de proxy reverso;
 \item desafios técnicos (QP2) - documentar configuração, observabilidade e trade-offs opera-cionais (Seção~\ref{sec:desafios-qp2});
-\item desempenho comparativo (QP3) - medir latência, tempo de resposta, TTFB, throughput e requisições por segundo (Seção~\ref{sec:metricas});
+\item desempenho comparativo (QP3) - medir latência, tempo de resposta, throughput e requisições por segundo (Seção~\ref{sec:metricas});
 \item estratégias de integração (QP4) - tornar reprodutível a arquitetura proxy + API REST.
 \end{enumerate}
 
@@ -165,7 +165,7 @@ Além da rota de health check (GET /health), a API expõe três \textit{endpoint
 Rota & Método & Finalidade experimental \\
 \hline
 /health & GET & Verificação de disponibilidade; baseline operacional \\
-/bench/ping & GET & Resposta JSON mínima (\{"ok": true\}); latência, TTFB e req/s \\
+/bench/ping & GET & Resposta JSON mínima (\{"ok": true\}); latência e req/s \\
 /bench/\allowbreak payload/:size & GET & Payload binário incompressível; :size $\in$ \{1kb, 100kb, 1mb\}; throughput de download \\
 /bench/echo & POST & Eco a contagem de bytes recebidos (\{"bytes": N\}); throughput de upload \\
 \hline
@@ -211,7 +211,7 @@ O middleware requestMetrics registra, a cada requisição finalizada, método HT
 
 Quando configurada, a variável METRICS\_FILE habilita a gravação de cada métrica em formato NDJSON (Newline Delimited JSON), um registro por linha, para análise posterior no Capítulo~\ref{cap:resultados}.
 
-O NGINX utiliza um formato de log personalizado que registra \$request\_time (tempo total da requisição no proxy) e \$upstream\_response\_time (tempo de resposta do backend). Esses valores complementam as métricas da aplicação na estimativa de TTFB e do tempo de resposta fim a fim.
+O NGINX utiliza um formato de log personalizado que registra \$request\_time (tempo total da requisição no proxy) e \$upstream\_response\_time (tempo de resposta do backend). Esses valores complementam as métricas da aplicação na estimativa do tempo de resposta fim a fim.
 
 A Tabela~\ref{tab:mapeamento-metricas} relaciona as métricas da Seção~\ref{sec:metricas} às fontes de medição disponíveis no ambiente experimental.
 
@@ -226,7 +226,6 @@ A Tabela~\ref{tab:mapeamento-metricas} relaciona as métricas da Seção~\ref{se
 \hline
 Latência & h2load (p95 de \breaktok{performance.request}, em ms) & NGINX (\$request\_time) \\
 Tempo de resposta & h2load, o mesmo percentil nos três protocolos & Pino (durationMs) \\
-TTFB & Sem valor por requisição no JSON do h2load & Server-Timing; NGINX \\
 \textit{Throughput} & h2load (\breaktok{bytes_per_second}, cabeçalhos e corpo) & Bytes em /bench/payload e /bench/echo \\
 Requisições por \textasciitilde\ segundo & h2load (sucessos / duração do patamar) & Pino \\
 \hline

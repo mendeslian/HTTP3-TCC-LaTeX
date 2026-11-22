@@ -14,7 +14,7 @@ O \texttt{-{}-warm-up-time=10s} descarta esse prefixo. O número de clientes per
 
 Uma célula curta de cada protocolo, antes das campanhas, deixou no access log do NGINX os valores HTTP/1.1, HTTP/2.0 e HTTP/3.0. As campanhas agregadas não arquivaram o access log.
 
-As tabelas principais deste capítulo destacam o percentil 95 de duração (\breaktok{http_req_duration_p95}) e a taxa de requisições (\breaktok{http_reqs_rate}). A Tabela~\ref{tab:recepcao-ideal} completa a matriz ideal com a taxa de recepção (\breaktok{data_received_rate}), definida no h2load como bytes\_total dividido pela duração do patamar, cabeçalhos e corpo. \breaktok{http_req_waiting} fica vazio: o TTFB do h2load é um valor por cliente, do início da conexão até o primeiro byte, e não entra nas tabelas. A mediana de \breaktok{http_req_failed_rate} é nula nas 33 células. Quatro execuções fogem disso. No POST /bench/echo, uma réplica de HTTP/2 registrou taxa 0,000038, com 26061 amostras e 26060 sucessos. Na submatriz, duas réplicas de HTTP/2 registraram taxas 0,122 e 0,172 (102238 amostras para 89738 sucessos; 91177 para 75534), e uma réplica de HTTP/3 no perfil loss\_1pct registrou taxa 0,134 (90988 amostras para 78820 sucessos). Nas outras 326 execuções, o número de amostras do p95 coincidiu com as requisições concluídas com sucesso.
+As tabelas principais deste capítulo destacam o percentil 95 de duração (\breaktok{http_req_duration_p95}) e a taxa de requisições (\breaktok{http_reqs_rate}). A Tabela~\ref{tab:recepcao-ideal} completa a matriz ideal com a taxa de recepção (\breaktok{data_received_rate}), definida no h2load como bytes\_total dividido pela duração do patamar, cabeçalhos e corpo. \breaktok{http_req_waiting} fica vazio: o valor do h2load é por cliente, do início da conexão até o primeiro byte, e não entra nas tabelas. A mediana de \breaktok{http_req_failed_rate} é nula nas 33 células. Quatro execuções fogem disso. No POST /bench/echo, uma réplica de HTTP/2 registrou taxa 0,000038, com 26061 amostras e 26060 sucessos. Na submatriz, duas réplicas de HTTP/2 registraram taxas 0,122 e 0,172 (102238 amostras para 89738 sucessos; 91177 para 75534), e uma réplica de HTTP/3 no perfil loss\_1pct registrou taxa 0,134 (90988 amostras para 78820 sucessos). Nas outras 326 execuções, o número de amostras do p95 coincidiu com as requisições concluídas com sucesso.
 
 \section{Submatriz degradada: perfil de controle (clean)}\label{sec:submatriz-clean}
 
@@ -98,7 +98,7 @@ No perfil combinado, o p95 mediano é 101,2 ms, 101,2 ms e 101,1 ms, e a taxa me
 
 A Figura~\ref{fig:p95-submatriz} sintetiza o p95 mediano de duração por protocolo nos quatro perfis da submatriz degradada.
 
-Esta campanha não tem TTFB por requisição. O campo \breaktok{http_req_waiting} fica vazio, como descrito na Seção~\ref{sec:protocolo-coleta}.
+O campo \breaktok{http_req_waiting} fica vazio, como descrito na Seção~\ref{sec:protocolo-coleta}.
 
 
 \begin{figure}[H]

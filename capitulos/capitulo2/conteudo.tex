@@ -76,8 +76,7 @@ A avaliação comparativa de protocolos HTTP exige a definição clara de métri
 
 \begin{enumerate}[label=\alph*)]
 \item latência: intervalo entre o envio de uma requisição e o recebimento da resposta completa, do ponto de vista do cliente;
-\item tempo de resposta: duração total do ciclo requisição-resposta, incluindo o processamento no servidor. Como as ferramentas de carga medem ambos pela mesma grandeza (duração da requisição), latência e tempo de resposta são reportados juntos no Capítulo~\ref{cap:resultados}, distinguindo-se apenas do TTFB;
-\item time to First Byte (TTFB): tempo até o recebimento do primeiro byte da resposta, que reflete o estabelecimento de conexão (quando há) e o início do processamento, sem incluir a transferência do corpo;
+\item tempo de resposta: duração total do ciclo requisição-resposta, incluindo o processamento no servidor. Como as ferramentas de carga medem ambos pela mesma grandeza (duração da requisição), latência e tempo de resposta são reportados juntos no Capítulo~\ref{cap:resultados};
 \item taxa de transferência (throughput): volume de dados transferidos por unidade de tempo\allowbreak{};
 \item requisições por segundo: capacidade do sistema sob carga, medindo escalabilidade e estabilidade.
 \end{enumerate}
