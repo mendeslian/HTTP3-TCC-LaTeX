@@ -336,7 +336,7 @@ A submatriz degradada restringiu-se a GET /bench/ping com 50 clientes e quatro p
 
 A submatriz degradada e a matriz ideal foram executadas na mesma estação (Seção~\ref{sec:protocolo-coleta}), sem replicação em outro hardware ou sistema operacional. As comparações dentro de cada campanha devem ser lidas nesse contexto.
 
-HTTP/1.1, HTTP/2 e HTTP/3 desta rodada terminam no mesmo NGINX. Uma célula curta de cada protocolo registrou no access log HTTP/1.1, HTTP/2.0 e HTTP/3.0. O cliente é o mesmo binário, com um stream em voo por sessão. Sob atraso de 100 ms, a taxa mediana de 494 req/s nos três protocolos acompanha esse limite: 50 clientes e cerca de 100 ms por requisição dão 500 req/s.
+HTTP/1.1, HTTP/2 e HTTP/3 desta rodada terminam no mesmo NGINX. Uma célula curta de cada protocolo registrou no access log HTTP/1.1, HTTP/2.0 e HTTP/3.0. O cliente é o mesmo binário, com um stream em voo por sessão (\texttt{-m 1}). Cada sessão leva uma requisição de cada vez e não multiplexa streams no patamar. No perfil loss\_1pct, a perda de um pacote atrasa essa requisição. A vantagem do QUIC contra o bloqueio HOL de transporte, descrita no Capítulo~\ref{cap:fundamentacao}, depende de outros streams na mesma conexão. Esta campanha não executou esse caso, e o perfil loss\_1pct não mede essa vantagem. Sob atraso de 100 ms, a taxa mediana de 494 req/s nos três protocolos acompanha esse limite: 50 clientes e cerca de 100 ms por requisição dão 500 req/s.
 
 Conforme a Seção~\ref{sec:protocolo-coleta}, as campanhas rodaram no Windows com Docker Desktop sobre WSL2. HTTP/3 usa QUIC sobre UDP. O trabalho não isolou o repasse de UDP do Docker Desktop do restante do caminho.
 
