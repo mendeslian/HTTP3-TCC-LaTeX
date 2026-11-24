@@ -36,6 +36,56 @@ A Figura~\ref{fig:arquitetura-experimental} resume os três caminhos. HTTP/1.1, 
 
 O código-fonte do artefato está disponível no repositório \url{https://github.com/mendeslian/QUICBench-Node}, permitindo a reprodução do ambiente descrito neste capítulo.
 
+\subsection{Requisitos funcionais e não funcionais}\label{sec:requisitos}
+
+Os requisitos funcionais (RF) e os requisitos não funcionais (RNF) registram o contrato do artefato usado na comparação entre HTTP/1.1, HTTP/2 e HTTP/3. Cada item retoma um comportamento descrito nas seções seguintes deste capítulo.
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do artefato}\label{tab:requisitos-funcionais}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{22mm}>{\raggedright\arraybackslash}p{124mm}@{}}
+\hline
+\textbf{ID} & \textbf{Descrição} \\
+\hline
+RF01 & A API responde a GET /health com status ok e um instante em formato ISO. \\
+RF02 & A API responde a GET /bench/ping com o JSON \{"ok": true\}. \\
+RF03 & A API responde a GET /bench/payload/:size com payload binário de 1 KB, 100 KB ou 1 MB. \\
+RF04 & GET /bench/payload/:size com tamanho fora desse conjunto responde com status 400. \\
+RF05 & POST /bench/echo devolve a contagem de bytes recebidos no JSON \{"bytes": N\}. \\
+RF06 & Rotas, métodos e formatos de resposta permanecem os mesmos em HTTP/1.1, HTTP/2 e HTTP/3. \\
+RF07 & Rota inexistente responde com status 404 e os campos error e path. \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos não funcionais do artefato}\label{tab:requisitos-nao-funcionais}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{22mm}>{\raggedright\arraybackslash}p{124mm}@{}}
+\hline
+\textbf{ID} & \textbf{Descrição} \\
+\hline
+RNF01 & O HTTP/3 termina no NGINX na porta 8443, e o encaminhamento até a API permanece em HTTP/1.1. \\
+RNF02 & A compressão HTTP fica desligada em /bench/payload/:size. \\
+RNF03 & Com BENCHMARK\_MODE ativo, o limitador de taxa não se aplica; com o modo desligado, o padrão é de 100 requisições por janela. \\
+RNF04 & As variáveis de ambiente da API são validadas na inicialização. \\
+RNF05 & Os payloads de /bench/payload/:size são gerados na inicialização, com tamanho fixo e conteúdo incompressível. \\
+RNF06 & Cada requisição finalizada registra método, caminho, protocolo, código de status, duração em milissegundos e bytes enviados. \\
+RNF07 & A resposta inclui o cabeçalho Server-Timing com a duração de processamento da aplicação. \\
+RNF08 & Com METRICS\_FILE definida, cada métrica é gravada em NDJSON, um registro por linha. \\
+RNF09 & O NGINX registra o tempo total da requisição no proxy e o tempo de resposta do backend. \\
+RNF10 & O artefato admite o modo host, para desenvolvimento, e o modo campanha, com API e NGINX em contêineres na rede bench; as campanhas reportadas usam o modo campanha. \\
+RNF11 & O NGINX anuncia HTTP/3 pelo cabeçalho Alt-Svc. \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor.}
+\end{table}
+
 \section{Infraestrutura e ferramentas}
 
 \subsection{Ambiente de execução}
