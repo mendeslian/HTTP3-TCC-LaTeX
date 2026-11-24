@@ -101,6 +101,18 @@ server {
 
 Essa arquitetura avalia o HTTP/3 sem alterar o código da API. Neste artefato, a borda precisa liberar UDP e configurar certificados.
 
+\subsection{Decisões de arquitetura}\label{sec:decisoes-arquitetura}
+
+O HTTP/3 termina no NGINX porque o Node.js deste laboratório não tem suporte nativo estável ao protocolo. Na documentação da versão 23.8.0, o módulo \textit{node:quic} tem estabilidade 1.0 e fica acessível pela flag \texttt{-{}-experimental-quic}. O texto trata o módulo como implementação do QUIC e não descreve uma API de HTTP/3 (NODE.JS, 2025). Na documentação da versão 26.13.0, a estabilidade continua 1.0, e o suporte embutido a HTTP/3 segue em desenvolvimento inicial (NODE.JS, 2026e). O ambiente usou Node.js 20 e 22, anteriores a essa documentação (Capítulo~\ref{cap:resultados}). A Seção~\ref{sec:delimitacao} exclui mudança no núcleo do \textit{runtime}, e a API permanece em \textit{node:http}. A comparação das mesmas rotas com o QUIC terminado no \textit{runtime} fica para quando a documentação deixar de descrever esse suporte como desenvolvimento inicial (Capítulo~\ref{cap:consideracoes}).
+
+O proxy medido é o NGINX da imagem nginx:mainline-alpine. Entre NGINX, Caddy e HAProxy, o autor usou dois critérios: o uso mais comum em projetos já existentes e a idade maior do NGINX. Caddy e HAProxy ficaram fora da configuração e das medições e as campanhas deste TCC mediram o NGINX. Nesta borda, o NGINX escuta UDP na porta 8443, usa certificado local, anuncia HTTP/3 pelo cabeçalho Alt-Svc, encaminha com \breaktok{proxy_pass} em HTTP/1.1 e registra \$request\_time e \$upstream\_response\_time. Em \breaktok{nginx.bench.conf}, keepalive\_requests está em 1000000, porque o default 1000 fecha a conexão e o h2load não abre outra.
+
+Entre h2load, k6 e curl, o autor escolheu o h2load porque o experimento avalia o comportamento e o desempenho dos protocolos HTTP sob carga controlada.
+
+No h2load, \texttt{-m 1} deixa um stream em voo por sessão e \texttt{-t 1} fixa uma thread. O \texttt{-{}-warm-up-time} descarta o prefixo de 10 s. O JSON deixa \texttt{http\_req\_waiting} vazio.
+
+O encaminhamento do NGINX até a API fica em HTTP/1.1. A API usa \textit{node:http} e Express, e o HTTP/3 na borda deixa o código da aplicação como está. A Listagem 4.1 fixa \breaktok{proxy_http_version 1.1} e \breaktok{proxy_pass http://node_api}. O módulo \textit{node:http2} é estável (NODE.JS, 2026d), e o servidor desta API é o \textit{node:http}. Os três caminhos do cliente encontram o mesmo salto, na porta 3000. O tc netem isenta o tráfego entre o NGINX e a API (Seção~\ref{sec:rede-degradada-desenho}). O QUIC fica na perna do cliente até o NGINX.
+
 \subsection{Ferramentas de teste de carga}
 
 Em linha com o objetivo do trabalho (Seção~\ref{sec:objetivo}) e com as métricas da Seção~\ref{sec:metricas}, a coleta principal utiliza o h2load do nghttp2 1.70.0 para HTTP/1.1, HTTP/2 e HTTP/3. O mesmo binário, no contêiner \breaktok{quicbench-h2load:1.70.0}, fala com https://nginx:8443. \texttt{-{}-h1} pede HTTP/1.1, \texttt{-{}-alpn-list=h2} pede HTTP/2 e \texttt{-{}-h3} pede HTTP/3.
