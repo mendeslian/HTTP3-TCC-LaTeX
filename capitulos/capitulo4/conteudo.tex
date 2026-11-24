@@ -378,5 +378,48 @@ A submatriz degradada exige o modo campanha (contêineres na rede bench). O rote
 
 Os experimentos foram conduzidos sobre a versão do artefato documentada neste capítulo, com resultados exportados para o diretório benchmarks/results/. O protocolo estatístico adotado neste estudo prevê 10 réplicas por célula experimental nas campanhas reportadas (submatriz degradada e matriz ideal). A mediana e o intervalo interquartil (IQR), no script benchmarks/scripts/aggregate.ts, descrevem cada célula. A comparação entre HTTP/2 e HTTP/3, na mesma condição de endpoint, carga e perfil de rede, usa o teste de Mann-Whitney (MANN; WHITNEY, 1947), aplicado aqui na forma bilateral, e o delta de Cliff (CLIFF, 1993), no script benchmarks/scripts/compare-h2-h3.ts. O nível de significância é 0,05 por métrica, sem correção entre condições nem entre as duas métricas. Dez réplicas equilibram a estimativa da variabilidade entre execuções e a viabilidade de execução em laboratório local. As versões de software e o hardware de cada campanha estão registrados na Seção~\ref{sec:protocolo-coleta}. No modo bench, a variável BENCHMARK\_MODE=true já consta em docker-compose.bench.yml; quem reproduzir os testes em modo host deve defini-la no arquivo .env. Os runners do repositório ainda oferecem modo quick (três réplicas) para validação do ambiente e modo full (30 réplicas) para campanhas futuras em hardware dedicado.
 
+\subsection{Rastreabilidade entre objetivos, questões, requisitos e resultados}\label{sec:rastreabilidade}
+
+A Tabela~\ref{tab:rastreabilidade} reúne, em cada linha, o objetivo específico, a questão de pesquisa, o requisito, o componente de software, o experimento e a tabela em que o resultado desse experimento aparece. Requisitos verificados só por teste automatizado, ou descritos no artefato sem medição no Capítulo~\ref{cap:resultados}, permanecem na tabela com essa indicação.
+
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}>{\footnotesize\raggedright\arraybackslash}p{20mm}>{\footnotesize\raggedright\arraybackslash}p{11mm}>{\footnotesize\raggedright\arraybackslash}p{22mm}>{\footnotesize\raggedright\arraybackslash}p{32mm}>{\footnotesize\raggedright\arraybackslash}p{38mm}>{\footnotesize\raggedright\arraybackslash}p{18mm}@{}}
+\caption[Rastreabilidade entre objetivos, requisitos, experimentos e resultados]{Rastreabilidade entre objetivos específicos, questões de pesquisa, requisitos, componentes, experimentos e tabelas de resultados}\label{tab:rastreabilidade}\\
+\hline
+\textbf{Objetivo} & \textbf{Questão} & \textbf{Requisito} & \textbf{Componente} & \textbf{Experimento} & \textbf{Tabela de resultados} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Objetivo} & \textbf{Questão} & \textbf{Requisito} & \textbf{Componente} & \textbf{Experimento} & \textbf{Tabela de resultados} \\
+\hline
+\endhead
+\hline
+\endfoot
+\endlastfoot
+a) viabilidade & QP1 & RF02, RF06, RNF01 (RNF03 como condição de execução) & \texttt{src/\allowbreak routes/\allowbreak bench.ts}, \texttt{nginx.\allowbreak bench.conf}, \texttt{docker-\allowbreak compose.\allowbreak bench.yml} & Submatriz degradada, GET /bench/ping, 50 clientes, perfis clean, lag\_100ms, loss\_1pct e lag\_100ms\_loss\_1pct (campanha 2026-11-03\_02-54-34) & \ref{tab:submatriz-clean}, \ref{tab:lag-100ms}, \ref{tab:loss-1pct}, \ref{tab:lag-loss} \\
+\hline
+a) viabilidade & QP1 & RF02, RF06, RNF01, RNF03 & \texttt{src/\allowbreak routes/\allowbreak bench.ts}, \texttt{nginx.\allowbreak bench.conf}, \texttt{docker-\allowbreak compose.\allowbreak bench.yml} & Matriz ideal, GET /bench/ping, 10, 50 e 100 clientes, perfil clean (campanha 2026-11-02\_22-02-21) & \ref{tab:ping-matriz-ideal}, \ref{tab:recepcao-ideal} \\
+\hline
+b) desafios técnicos & QP2 & RNF09 & NGINX (\texttt{\$request\_time}, \texttt{\$upstream\_\allowbreak response\_\allowbreak time}) & Sonda HTTP/3 de 31 de outubro de 2026, com o cliente curl (sem h2load) & \ref{tab:sonda-http3} \\
+\hline
+b) desafios técnicos & QP2 & RNF06, RNF07, RNF08 & \texttt{src/\allowbreak middlewares/\allowbreak request\allowbreak Metrics.\allowbreak ts}, \texttt{src/\allowbreak services/\allowbreak metrics.\allowbreak service.\allowbreak ts} & Sem campanha dedicada; o texto registra que \texttt{app;dur} e \texttt{durationMs} não aparecem nas pastas de resultado e que \texttt{METRICS\_FILE} não está definida no modo campanha & Nenhuma tabela no Capítulo~\ref{cap:resultados} \\
+\hline
+b) desafios técnicos & QP2 & RNF01, RNF10 & \texttt{docker-\allowbreak compose.yml}, \texttt{docker-\allowbreak compose.\allowbreak bench.yml}, \texttt{nginx.\allowbreak bench.conf} & Desafios de implementação descritos na seção de desafios técnicos (sem campanha de carga própria) & \ref{tab:desafios-tecnicos} \\
+\hline
+c) desempenho comparativo & QP3 & RF03, RF06, RNF01, RNF02, RNF05 & \texttt{src/\allowbreak routes/\allowbreak bench.ts}, \texttt{src/\allowbreak services/\allowbreak payload.\allowbreak service.\allowbreak ts}, NGINX & Matriz ideal, GET /bench/payload/:size (1 KB, 100 KB, 1 MB), 50 clientes, perfil clean & \ref{tab:payload-echo}, \ref{tab:recepcao-ideal}, \ref{tab:mann-whitney-ideal} \\
+\hline
+c) desempenho comparativo & QP3 & RF05, RF06, RNF01 & \texttt{src/\allowbreak routes/\allowbreak bench.ts}, NGINX & Matriz ideal, POST /bench/echo com corpo de 100 KB, 50 clientes, perfil clean & \ref{tab:payload-echo}, \ref{tab:recepcao-ideal}, \ref{tab:mann-whitney-ideal} \\
+\hline
+c) desempenho comparativo & QP3 & RF02, RF06, RNF01, RNF03 & \texttt{src/\allowbreak routes/\allowbreak bench.ts}, \texttt{nginx.\allowbreak bench.conf}, \texttt{docker-\allowbreak compose.\allowbreak bench.yml} & Submatriz degradada, GET /bench/ping, 50 clientes, quatro perfis netem (campanha 2026-11-03\_02-54-34) & \ref{tab:mann-whitney-submatriz} \\
+\hline
+c) desempenho comparativo & QP3 & RF02, RF06, RNF01, RNF03 & \texttt{src/\allowbreak routes/\allowbreak bench.ts}, \texttt{nginx.\allowbreak bench.conf}, \texttt{docker-\allowbreak compose.\allowbreak bench.yml} & Matriz ideal, GET /bench/ping, 10, 50 e 100 clientes, perfil clean (campanha 2026-11-02\_22-02-21) & \ref{tab:mann-whitney-ideal} \\
+\hline
+d) estratégias de integração & QP4 & RNF01, RNF11 & NGINX de \texttt{docker-\allowbreak compose.yml}, cabeçalho Alt-Svc, curl & Sonda Alt-Svc de 4 de novembro de 2026, modo host, GET /bench/ping & \ref{tab:alt-svc} \\
+\hline
+Não se aplica & Não se aplica (verificação automatizada) & RF01, RF04, RF07, RNF04 & \texttt{test/\allowbreak app.e2e-spec.ts}, \texttt{src/\allowbreak routes/\allowbreak bench.spec.ts}, \texttt{src/\allowbreak middlewares/\allowbreak notFound\allowbreak Handler.\allowbreak spec.\allowbreak ts}, \texttt{src/\allowbreak config/\allowbreak env.spec.ts} & Testes automatizados (não são experimento de desempenho) & \ref{tab:casos-teste} \\
+\hline
+\multicolumn{6}{@{}c@{}}{\small Fonte: elaborado pelo autor.} \\
+\end{longtable}
+
 Com os cenários definidos e o ambiente implementado, o Capítulo~\ref{cap:resultados} apresenta a execução dos testes, os dados coletados e a análise comparativa entre HTTP/1.1, HTTP/2 e HTTP/3; o Capítulo~\ref{cap:consideracoes} encerra o estudo com a síntese das respostas às questões de pesquisa e perspectivas de continuidade.
 
