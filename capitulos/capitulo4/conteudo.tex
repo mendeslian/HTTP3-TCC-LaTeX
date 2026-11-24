@@ -207,7 +207,7 @@ TRUST\_\allowbreak PROXY\_\allowbreak HOPS & 1 & Hops de proxy confiável (NGINX
 \fonte{Fonte: elaborado pelo autor.}
 \end{table}
 
-O middleware requestMetrics registra, a cada requisição finalizada, método HTTP, caminho, protocolo, código de status, duração em milissegundos e bytes enviados. Os registros são emitidos via Pino (structured logging) com a mensagem metricas\_requisicao. Adicionalmente, o cabeçalho Server-Timing: app;dur=<ms> é injetado antes do envio dos cabeçalhos de resposta, permitindo separar o tempo de processamento da aplicação do tempo total de transporte.
+O middleware requestMetrics registra, a cada requisição finalizada, método HTTP, caminho, protocolo, código de status, duração em milissegundos e bytes enviados. Os registros são emitidos via Pino (structured logging) com a mensagem metricas\_requisicao. Adicionalmente, o cabeçalho Server-Timing: app;dur=<ms> é injetado antes do envio dos cabeçalhos de resposta, permitindo separar o tempo de processamento da aplicação do tempo total de transporte. Esse middleware não tem arquivo de teste próprio (Seção~\ref{sec:estrategia-testes}).
 
 Quando configurada, a variável METRICS\_FILE habilita a gravação de cada métrica em formato NDJSON (Newline Delimited JSON), um registro por linha, para análise posterior no Capítulo~\ref{cap:resultados}.
 
@@ -232,6 +232,41 @@ Requisições por \textasciitilde\ segundo & h2load (sucessos / duração do pat
 \end{tabular}
 \fonte{Fonte: elaborado pelo autor.}
 \end{table}
+
+\section{Estratégia de testes e cobertura}\label{sec:estrategia-testes}
+
+O repositório verifica o artefato com três scripts npm. As campanhas de carga com o h2load ficam na seção seguinte e no Capítulo~\ref{cap:resultados}. \texttt{npm test} executa o Jest no ambiente node e seleciona arquivos \texttt{*.spec.ts} e \texttt{*.e2e-spec.ts}. \texttt{npm run lint} executa o ESLint no repositório, com a configuração recommended do typescript-eslint, e ignora node\_modules, coverage, dist e build. \texttt{npm run typecheck} executa \texttt{tsc -{}-noEmit} com o tsconfig.json, que inclui a pasta src e exclui os \texttt{*.spec.ts}.
+
+Os specs, a pasta test e os arquivos TypeScript de benchmarks/\allowbreak scripts e de benchmarks/\allowbreak h2load ficam no tsconfig.jest.json, lido pelo ts-jest quando o Jest roda. O repositório não tem workflow para esses três comandos.
+
+A Tabela~\ref{tab:casos-teste} reúne os 30 casos.
+
+\begin{table}[htbp]
+\centering
+\caption{Casos de teste automatizados do artefato}\label{tab:casos-teste}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{48mm}>{\raggedright\arraybackslash}p{84mm}>{\centering\arraybackslash}p{14mm}@{}}
+\hline
+Arquivo & O que os casos verificam & Casos \\
+\hline
+src/\allowbreak config/\allowbreak env.spec.ts & Padrões de parseEnv, conversão de strings numéricas, rejeição de PORT e de LOG\_LEVEL, BENCHMARK\_MODE como booleano, METRICS\_FILE e BENCH\_MAX\_BODY\_BYTES & 6 \\
+src/\allowbreak routes/\allowbreak bench.spec.ts & GET /bench/ping, payloads de 1kb, 100kb e 1mb, tamanho inválido com status 400 e POST /bench/echo com 512 bytes & 6 \\
+src/\allowbreak middlewares/\allowbreak errorHandler.spec.ts & Status 400, mensagem 500 oculta em produção e visível em desenvolvimento, sem segunda resposta se os headers já foram enviados & 4 \\
+src/\allowbreak middlewares/\allowbreak notFoundHandler.spec.ts & 404 com os campos error e path & 1 \\
+test/\allowbreak app.e2e-spec.ts & GET /health com status ok e timestamp ISO, e rota inexistente & 2 \\
+benchmarks/\allowbreak scripts/\allowbreak compare-h2-h3.spec.ts & U de Mann-Whitney, delta de Cliff, p exato e assintótico, pareamento de HTTP/2 com HTTP/3 por condição e métrica & 7 \\
+benchmarks/\allowbreak h2load/\allowbreak map-summary.spec.ts & Segundos convertidos em ms, mediana que não cabe em segundos, índice truncado no vetor ordenado e JSON gravado pelo h2load & 4 \\
+\hline
+Total & & 30 \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor.}
+\end{table}
+
+Os casos de src/routes/bench.spec.ts e de test/app.e2e-spec.ts usam o Supertest sobre createApp, a função que monta a API. errorHandler e notFoundHandler são chamados com objetos simulados e não passam por essa pipeline.
+
+src/middlewares/requestMetrics.ts não tem spec. createApp registra o middleware, e os casos HTTP passam por ele sem conferir o cabeçalho Server-Timing nem a mensagem de log metricas\_requisicao. src/services/metrics.service.ts, que grava o NDJSON a partir desse middleware, também não tem spec. Em src/config/env.spec.ts, parseEnv aceita METRICS\_FILE e, sem a variável, deixa o valor indefinido.
 
 \section{Cenários experimentais definidos}
 
