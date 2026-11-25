@@ -36,6 +36,43 @@ A Figura~\ref{fig:arquitetura-experimental} mostra o contexto, os contêineres e
 
 O código-fonte do artefato está disponível no repositório \url{https://github.com/mendeslian/QUICBench-Node}, permitindo a reprodução do ambiente descrito neste capítulo.
 
+\subsection{Fluxo de requisição por protocolo}\label{sec:fluxo-requisicao}
+
+As Figuras~\ref{fig:seq-http11}, \ref{fig:seq-http2} e \ref{fig:seq-http3} detalham, para cada protocolo, a troca de mensagens entre o cliente, o NGINX e a API. Os três diagramas usam os mesmos participantes e a mesma ordem de eventos, de modo que as diferenças visíveis estão na camada de transporte e na forma como a requisição chega ao NGINX.
+
+\begin{figure}[H]
+\centering
+\input{assets/figuras/seq-http11.tex}
+\caption{Sequência da requisição em HTTP/1.1: TCP, TLS 1.3 com ALPN \texttt{http/1.1} e \textit{proxy\_pass} para a API}\label{fig:seq-http11}
+\fonte{Fonte: elaborado pelo autor.}
+\end{figure}
+
+No caminho HTTP/1.1, o cliente abre uma conexão TCP com o NGINX na porta 8443, negocia TLS 1.3 com ALPN \texttt{http/1.1} e envia \texttt{GET /bench/ping}. Com a flag \texttt{-{}-h1} do h2load e \texttt{-m 1}, cada sessão leva uma requisição de cada vez. O NGINX encerra o TLS, repassa a requisição à API na porta 3000 em HTTP/1.1 e devolve a resposta ao cliente. O ciclo se repete até o fim do patamar de 60 s, e o aquecimento de 10 s é descartado da medição.
+
+Essa sequência serve de base para os demais protocolos, porque o salto NGINX$\leftrightarrow$API é o mesmo em todos eles. A diferença entre os caminhos está na perna entre o cliente e o NGINX, onde o HTTP/1.1 usa TCP.
+
+\begin{figure}[H]
+\centering
+\input{assets/figuras/seq-http2.tex}
+\caption{Sequência da requisição em HTTP/2: TCP, TLS 1.3 com ALPN \texttt{h2} e um stream por requisição}\label{fig:seq-http2}
+\fonte{Fonte: elaborado pelo autor.}
+\end{figure}
+
+No caminho HTTP/2, a conexão TCP e o TLS 1.3 são semelhantes ao HTTP/1.1, mas o ALPN anuncia \texttt{h2}, e cada requisição viaja em um stream. O protocolo permite multiplexar vários streams numa conexão, mas a flag \texttt{-m 1} do experimento mantém um stream em voo por sessão. Assim, a medição compara a camada de protocolo sem explorar a multiplexação. O NGINX repassa a requisição à API em HTTP/1.1, exatamente como no caminho anterior.
+
+O handshake TLS aparece uma vez: ClientHello com ALPN \texttt{h2} e ServerHello com \texttt{h2}, em TCP na porta 8443. O \texttt{GET /bench/ping} segue em HEADERS no stream 1. A API responde 200 com \texttt{\{"ok":true\}}, e o NGINX devolve HEADERS e DATA nesse stream. O ciclo seguinte usa o stream 3 na mesma conexão, pelo patamar de 60 s, com o aquecimento de 10 s fora da medição.
+
+\begin{figure}[H]
+\centering
+\input{assets/figuras/seq-http3.tex}
+\caption{Sequência da requisição em HTTP/3: handshake QUIC sobre UDP com TLS 1.3 integrado e um stream por requisição}\label{fig:seq-http3}
+\fonte{Fonte: elaborado pelo autor.}
+\end{figure}
+
+No caminho HTTP/3, o cliente não abre uma conexão TCP. O handshake QUIC ocorre sobre UDP na porta 8443 e incorpora o TLS 1.3, de modo que a requisição HTTP/3 segue um stream QUIC. A flag \texttt{-{}-h3} do h2load seleciona esse caminho. A partir do NGINX, o encaminhamento à API continua em HTTP/1.1, conforme a Listagem 4.1, e o código da aplicação permanece o mesmo.
+
+Os três diagramas mostram o mesmo salto interno e uma borda que muda de transporte. Como o netem isenta o trecho NGINX$\leftrightarrow$API (Seção~\ref{sec:rede-degradada-desenho}), a perturbação de rede atinge a perna do cliente até o NGINX nos três protocolos. Assim, o backend recebe a mesma carga em todos os caminhos.
+
 \subsection{Requisitos funcionais e não funcionais}\label{sec:requisitos}
 
 Os requisitos funcionais (RF) e os requisitos não funcionais (RNF) registram o contrato do artefato usado na comparação entre HTTP/1.1, HTTP/2 e HTTP/3. Cada item retoma um comportamento descrito nas seções seguintes deste capítulo.
@@ -98,6 +135,19 @@ O ambiente de execução foi construído sobre Node.js (versão $\geq$ 18), exec
 \end{enumerate}
 
 As duas campanhas reportadas neste trabalho utilizaram exclusivamente o modo campanha. O modo \textit{host} permanece documentado no repositório para reprodução dos caminhos de protocolo fora do laboratório \textit{bench}.
+
+A Figura~\ref{fig:implantacao} mostra a topologia do modo campanha sobre a estação de trabalho. Os contêineres ficam na rede Docker \texttt{bench}, sub-rede 172.30.0.0/16, com IPs fixos para a API (172.30.0.10) e para o NGINX (172.30.0.20). O cliente h2load roda em um contêiner na mesma rede. Os dados de sistema operacional, versões e hardware estão na Seção~\ref{sec:protocolo-coleta}.
+
+\begin{figure}[htbp]
+\centering
+\input{assets/figuras/deploy-ambiente.tex}
+\caption{Diagrama de implantação do modo campanha: estação Windows, Docker Desktop com WSL2, rede \texttt{bench} e portas publicadas}\label{fig:implantacao}
+\fonte{Fonte: elaborado pelo autor.}
+\end{figure}
+
+O diagrama separa três camadas. A mais externa é a estação Windows 11 Pro, que hospeda o Docker Desktop com backend WSL2. Dentro dele, a rede \texttt{bench} isola a API, o NGINX e o cliente. Na borda, o NGINX publica a porta 8443 nos protocolos TCP (para HTTP/1.1 e HTTP/2) e UDP (para HTTP/3). A API publica a porta 3000 no host, mas o NGINX a alcança pela rede interna, no salto HTTP/1.1 que o netem isenta.
+
+Essa topologia explica por que a rede degradada depende do modo campanha. O \texttt{tc netem} é aplicado nos scripts de \texttt{benchmarks/netem} sobre o tráfego de saída voltado ao cliente, e a isenção do salto NGINX$\leftrightarrow$API só é possível porque os dois contêineres compartilham a mesma rede com endereços fixos. No modo \textit{host}, a API roda fora do contêiner, o que muda a topologia que os scripts de netem pressupõem. A figura também registra que o Docker Desktop opera sobre WSL2, camada que a Seção~\ref{sec:ameacas-validade} trata como limitação do trabalho, pois o repasse de UDP do Docker Desktop não foi isolado do restante do caminho.
 
 \subsection{Proxy reverso e terminação HTTP/3}
 

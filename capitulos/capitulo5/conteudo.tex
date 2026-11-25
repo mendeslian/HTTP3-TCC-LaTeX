@@ -315,6 +315,17 @@ Em 4 de novembro de 2026, fora das campanhas de carga, uma sonda usou o modo hos
 \fonte{Fonte: elaborado pelo autor (benchmarks/results/alt-svc-fallback/2026-11-04\_01-30-34/, arquivos headers-1.txt, headers-2.txt, headers-3.txt, writeout-1.txt, writeout-2.txt, writeout-3.txt, nginx-1.txt, nginx-2.txt e nginx-3.txt). nginx-2.txt também contém a linha das 04:30:36 UTC.}
 \end{table}
 
+A Figura~\ref{fig:seq-altsvc} resume as três requisições. Ela mostra o anúncio gravado pelo cliente, a troca para HTTP/3 com o cache preenchido e o retorno ao HTTP/2 quando só a porta TCP está publicada.
+
+\begin{figure}[H]
+\centering
+\input{assets/figuras/seq-altsvc.tex}
+\caption{Sequência da negociação Alt-Svc com fallback: anúncio na primeira resposta, upgrade para HTTP/3 com cache e retorno ao HTTP/2 sem UDP}\label{fig:seq-altsvc}
+\fonte{Fonte: elaborado pelo autor.}
+\end{figure}
+
+A primeira requisição não tem anúncio em cache, então o curl usa HTTP/2 e grava o cabeçalho \texttt{alt-svc} da resposta. Esse anúncio traz \texttt{ma=2592000}, ou seja, 30 dias de validade. A segunda requisição consulta esse cache e tenta o endereço HTTP/3 na porta 8443, o que resulta em \texttt{using HTTP/3} no verbose. A terceira repete a segunda com o contêiner publicando apenas \texttt{8443/tcp}. Nessa condição, o verbose não registra erro QUIC, e o cliente negocia HTTP/2 pelo TCP, que o servidor aceita.
+
 Na segunda requisição, o verbose traz a troca de h2 para h3 e a linha \texttt{using HTTP/3}:
 
 \begin{lstlisting}

@@ -1,0 +1,46 @@
+% Diagrama de sequencia da negociacao Alt-Svc com fallback (Figura do capitulo 5).
+% Fontes: capitulos/capitulo5/conteudo.tex (secao Negociacao por Alt-Svc,
+% Tabela tab:alt-svc, verbose do curl e access log do NGINX);
+% benchmarks/results/alt-svc-fallback/2026-11-04_01-30-34/.
+\begin{tikzpicture}[
+  part/.style={draw, rectangle, align=center, inner sep=2pt, font=\scriptsize, minimum width=3.6cm, minimum height=0.9cm},
+  life/.style={draw=black!60, dashed},
+  msg/.style={-{Stealth[length=2mm]}, thick},
+  rmsg/.style={-{Stealth[length=2mm]}, thick, dashed},
+  lbl/.style={font=\tiny, inner sep=1.5pt, fill=white, align=center},
+  wrap/.style={font=\tiny, inner sep=1.5pt, fill=white, align=center, text width=4.2cm},
+  phase/.style={font=\scriptsize\bfseries, align=center, text width=12.2cm, anchor=north, fill=white, inner sep=2pt},
+  note/.style={font=\scriptsize\itshape, align=center, text width=12.2cm, anchor=north, fill=white, inner sep=2pt},
+]
+
+\node[part] (cli) at (0,0) {Cliente\\(curl 8.11.0-DEV, \texttt{-{}-alt-svc})};
+\node[part] (ngx) at (5.4,0) {NGINX\\(\texttt{host.docker.internal:8443})};
+\node[part] (cache) at (10.8,0) {Cache Alt-Svc\\(do cliente)};
+
+\draw[life] (cli.south) -- ([yshift=-16.2cm]cli.south);
+\draw[life] (ngx.south) -- ([yshift=-16.2cm]ngx.south);
+\draw[life] (cache.south) -- ([yshift=-16.2cm]cache.south);
+
+\node[phase] at ([yshift=-0.3cm]ngx.south) {Requisição 1 (\texttt{-{}-http2}, cache vazio)};
+\draw[msg] ([yshift=-1.25cm]cli.south) -- node[lbl, above] {GET /bench/ping (TCP, h2)} ([yshift=-1.25cm]ngx.south);
+\draw[rmsg] ([yshift=-2.35cm]ngx.south) -- node[wrap, above] {200, \texttt{alt-svc: h3=":8443"; ma=2592000}} ([yshift=-2.35cm]cli.south);
+\draw[msg] ([yshift=-3.45cm]cli.south) -- node[wrap, above] {grava anúncio (\texttt{ma}=2592000 s)} ([yshift=-3.45cm]cache.south);
+\node[note] at ([yshift=-4.15cm]ngx.south) {Protocolo final: HTTP/2.0};
+
+\node[phase] at ([yshift=-4.8cm]ngx.south) {Requisição 2 (cache gravado, sem \texttt{-{}-http2})};
+\draw[msg] ([yshift=-5.75cm]cli.south) -- node[lbl, above] {consulta anúncio} ([yshift=-5.75cm]cache.south);
+\draw[rmsg] ([yshift=-6.55cm]cache.south) -- node[lbl, above] {h3 em :8443} ([yshift=-6.55cm]cli.south);
+\draw[msg] ([yshift=-7.35cm]cli.south) -- node[lbl, above] {QUIC/UDP: \texttt{using HTTP/3}} ([yshift=-7.35cm]ngx.south);
+\draw[rmsg] ([yshift=-8.15cm]ngx.south) -- node[lbl, above] {200 \texttt{\{"ok":true\}}} ([yshift=-8.15cm]cli.south);
+\node[note] at ([yshift=-8.85cm]ngx.south) {Protocolo final: HTTP/3.0 (access log: \texttt{h3=h3})};
+
+\node[phase] at ([yshift=-9.5cm]ngx.south) {Requisição 3 (cache gravado, só \texttt{8443/tcp} publicado)};
+\draw[msg] ([yshift=-10.65cm]cli.south) -- node[lbl, above] {consulta anúncio} ([yshift=-10.65cm]cache.south);
+\draw[rmsg] ([yshift=-11.45cm]cache.south) -- node[lbl, above] {h3 em :8443} ([yshift=-11.45cm]cli.south);
+\draw[msg] ([yshift=-12.25cm]cli.south) -- node[lbl, above] {tentativa QUIC/UDP} ([yshift=-12.25cm]ngx.south);
+\node[note] at ([yshift=-12.85cm]ngx.south) {verbose sem linha de erro QUIC};
+\draw[msg] ([yshift=-13.7cm]cli.south) -- node[wrap, above] {fallback: ALPN \texttt{h2,http/1.1} (TCP)} ([yshift=-13.7cm]ngx.south);
+\draw[rmsg] ([yshift=-14.7cm]ngx.south) -- node[wrap, above] {200, servidor aceita \texttt{h2}} ([yshift=-14.7cm]cli.south);
+\node[note] at ([yshift=-15.4cm]ngx.south) {Protocolo final: HTTP/2.0 (access log: \texttt{h3} vazio)};
+
+\end{tikzpicture}
