@@ -14,7 +14,7 @@ O \texttt{-{}-warm-up-time=10s} descarta esse prefixo. O número de clientes per
 
 Uma célula curta de cada protocolo, antes das campanhas, deixou no access log do NGINX os valores HTTP/1.1, HTTP/2.0 e HTTP/3.0. As campanhas agregadas não arquivaram o access log.
 
-As tabelas principais deste capítulo destacam o percentil 95 de duração (\breaktok{http_req_duration_p95}) e a taxa de requisições (\breaktok{http_reqs_rate}). A Tabela~\ref{tab:recepcao-ideal} completa a matriz ideal com a taxa de recepção (\breaktok{data_received_rate}), definida no h2load como bytes\_total dividido pela duração do patamar, cabeçalhos e corpo. \breaktok{http_req_waiting} fica vazio: o valor do h2load é por cliente, do início da conexão até o primeiro byte, e não entra nas tabelas. A mediana de \breaktok{http_req_failed_rate} é nula nas 33 células. Quatro execuções fogem disso. No POST /bench/echo, uma réplica de HTTP/2 registrou taxa 0,000038, com 26061 amostras e 26060 sucessos. Na submatriz, duas réplicas de HTTP/2 registraram taxas 0,122 e 0,172 (102238 amostras para 89738 sucessos; 91177 para 75534), e uma réplica de HTTP/3 no perfil loss\_1pct registrou taxa 0,134 (90988 amostras para 78820 sucessos). Nas outras 326 execuções, o número de amostras do p95 coincidiu com as requisições concluídas com sucesso.
+As tabelas principais deste capítulo destacam o percentil 95 de duração (\breaktok{http_req_duration_p95}) e a taxa de requisições (\breaktok{http_reqs_rate}). A Tabela~\ref{tab:recepcao-ideal} completa a matriz ideal com a taxa de recepção (\breaktok{data_received_rate}), definida no h2load como bytes\_total dividido pela duração do patamar, cabeçalhos e corpo. \breaktok{http_req_waiting} fica vazio: o valor do h2load é por cliente, do início da conexão até o primeiro byte, e não entra nas tabelas. A mediana de \breaktok{http_req_failed_rate} é nula nas 33 células das campanhas de novembro. Nas nove células da Seção~\ref{sec:ping-saturacao}, a mediana também é nula, e o mínimo e o máximo gravados são zero. Nas campanhas de novembro, quatro execuções fogem da taxa nula. No POST /bench/echo, uma réplica de HTTP/2 registrou taxa 0,000038, com 26061 amostras e 26060 sucessos. Na submatriz, duas réplicas de HTTP/2 registraram taxas 0,122 e 0,172 (102238 amostras para 89738 sucessos; 91177 para 75534), e uma réplica de HTTP/3 no perfil loss\_1pct registrou taxa 0,134 (90988 amostras para 78820 sucessos). Nas outras 326 execuções de novembro, o número de amostras do p95 coincidiu com as requisições concluídas com sucesso.
 
 \section{Submatriz degradada: perfil de controle (clean)}\label{sec:submatriz-clean}
 
@@ -215,6 +215,56 @@ POST echo 100 KB & HTTP/3 & 0,82 MB/s \\
 \fonte{Fonte: elaborado pelo autor (benchmarks/results/2026-11-02\_22-02-21/summary.csv). Recepção: mediana de data\_received\_rate do h2load (bytes\_total / duração do patamar, cabeçalhos e corpo). 1 KB = 1024 bytes.}
 \end{table}
 
+\subsection{Saturação do ping}\label{sec:ping-saturacao}
+
+A Tabela~\ref{tab:ping-matriz-ideal} deixa a taxa mediana de /bench/ping entre 1958 e 2154 req/s com 10, 50 e 100 clientes. Em 24 de novembro de 2026, com a imagem que ainda subia a API por \texttt{npx tsx src/server.ts} e \texttt{LOG\_LEVEL=info}, uma execução de cada protocolo e de cada carga registrou taxas de 1872 a 2267 req/s. Os arquivos estão em \breaktok{benchmarks/results/2026-11-24\_23-57-34-ping-stats-before/}. Durante o patamar, \texttt{docker stats} amostrou a cada 5 s os contêineres da API, do NGINX e do h2load. O Docker expressa a CPU como porcentagem de um núcleo. A mediana das amostras da API ficou entre 105,5\% e 107,5\%. A do NGINX ficou entre 43,9\% e 51,4\%. A do h2load ficou entre 19,4\% e 39,2\%, e o maior valor foi no HTTP/3.
+
+A campanha \breaktok{2026-11-25\_00-27-15} repete só GET /bench/ping, nas mesmas três cargas e nos três protocolos, com dez réplicas, patamar de 60 s e aquecimento de 10 s. O \texttt{campaign.json} grava \texttt{node dist/server.js}, \texttt{log\_level} warn e \texttt{cooldown\_sec} = 0, pela flag \texttt{-NoPause}. A matriz ideal de 2 de novembro usou 180 s entre réplicas. O GET de 1 KB, o POST /bench/echo e a submatriz degradada permanecem nas campanhas de novembro.
+
+A Tabela~\ref{tab:ping-compilado} resume as dez réplicas. A taxa mediana fica entre 2590 e 2676 req/s e não sobe de 10 para 100 clientes. O p95 mediano sobe com a carga.
+
+\begin{table}[H]
+\centering
+\caption{Ping com a API compilada, perfil clean (n = 10 réplicas)}\label{tab:ping-compilado}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{18mm}>{\raggedright\arraybackslash}p{34mm}>{\raggedright\arraybackslash}p{34mm}>{\raggedright\arraybackslash}p{28mm}>{\raggedright\arraybackslash}p{26mm}@{}} \hline
+\textbf{Clientes} & \textbf{Protocolo} & \textbf{p95 mediano (ms)} & \textbf{IQR p95 (ms)} & \textbf{req/s mediano} \\
+\hline
+10 & HTTP/1.1 & 6,4 & 0,02 & 2651 \\
+10 & HTTP/2 & 6,4 & 0,04 & 2676 \\
+10 & HTTP/3 & 6,5 & 0,08 & 2635 \\
+50 & HTTP/1.1 & 24,3 & 0,38 & 2633 \\
+50 & HTTP/2 & 24,1 & 0,27 & 2651 \\
+50 & HTTP/3 & 24,6 & 0,33 & 2601 \\
+100 & HTTP/1.1 & 46,7 & 1,0 & 2611 \\
+100 & HTTP/2 & 46,9 & 0,71 & 2623 \\
+100 & HTTP/3 & 47,1 & 0,40 & 2590 \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor (agregação de benchmarks/results/2026-11-25\_00-27-15/summary.csv).}
+\end{table}
+
+Na primeira réplica dessa campanha, o mesmo \texttt{docker stats} deixou a mediana das amostras da API entre 107,6\% e 110,3\% de um núcleo, a do NGINX entre 47,8\% e 60,7\% e a do h2load entre 22,6\% e 43,7\%. O maior valor do h2load foi de novo no HTTP/3. A CPU da API permanece nessa faixa nas três cargas. Com a API compilada e sem os logs info por requisição, a taxa mediana saiu da faixa de cerca de 2000 req/s e ficou entre 2590 e 2676. O contêiner da API continua em torno de um núcleo, e a taxa não cresce com o número de clientes.
+
+\begin{table}[H]
+\centering
+\caption[Ping compilado - Mann-Whitney e delta de Cliff, HTTP/2 contra HTTP/3]{Ping compilado - Mann-Whitney e delta de Cliff, HTTP/2 contra HTTP/3 (perfil clean, n = 10)}\label{tab:mann-whitney-ping-compilado}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{36mm}>{\centering\arraybackslash}p{18mm}>{\centering\arraybackslash}p{28mm}>{\centering\arraybackslash}p{20mm}>{\centering\arraybackslash}p{28mm}@{}} \hline
+\textbf{Condição} & \textbf{$\delta$ p95} & \textbf{p (p95)} & \textbf{$\delta$ req/s} & \textbf{p (req/s)} \\
+\hline
+ping, 10 clientes & $-1$ & $2/184756$ & $0{,}88$ & $0{,}000325$ \\
+ping, 50 clientes & $-0{,}98$ & $0{,}000022$ & $1$ & $2/184756$ \\
+ping, 100 clientes & $-0{,}28$ & $0{,}315$ & $0{,}80$ & $0{,}00150$ \\
+\hline
+\end{tabular}
+\fonte{Fonte: elaborado pelo autor (benchmarks/results/2026-11-25\_00-27-15/h2-h3-tests.csv). Amostra HTTP/2 contra HTTP/3, n = 10. p bilateral exato. Sem correção entre condições. O p de $2/184756$ é o da separação completa.}
+\end{table}
+
+Com 10 clientes, o p95 de HTTP/2 ficou abaixo do de HTTP/3 em todas as réplicas ($\delta = -1$, p = $2/184756$) e a taxa ficou acima ($\delta = 0{,}88$, p = $0{,}000325$). As medianas são 6,4 ms e 2676 req/s para HTTP/2, e 6,5 ms e 2635 req/s para HTTP/3. Com 50 clientes, o p95 tem $\delta = -0{,}98$ e p = $0{,}000022$, e a taxa tem $\delta = 1$ e p = $2/184756$. As medianas são 24,1 ms e 2651 req/s para HTTP/2, e 24,6 ms e 2601 req/s para HTTP/3. Com 100 clientes, o p95 tem $\delta = -0{,}28$ e p = $0{,}315$. A taxa tem $\delta = 0{,}80$ e p = $0{,}00150$. As medianas são 46,9 ms e 2623 req/s para HTTP/2, e 47,1 ms e 2590 req/s para HTTP/3.
+
 \section{Análise e discussão}\label{sec:analise-discussao}
 
 Acerca da viabilidade e integração (QP1 e QP4), as campanhas em rede clean e degradada mostram o caminho HTTP/3 operacional. A mediana da taxa de falha é nula em cada célula de HTTP/3. Das 110 execuções de HTTP/3, uma, no perfil loss\_1pct, registrou taxa 0,134 (Seção~\ref{sec:protocolo-coleta}). O artefato (API, NGINX, Docker e o h2load) foi executado com o mesmo roteiro na mesma estação, em duas campanhas independentes. O proxy reverso deste trabalho termina o HTTP/3 na borda e mantém o backend Node.js.
@@ -258,7 +308,7 @@ POST echo 100 KB & $0{,}94$ & $0{,}000076$ & $-1$ & $2/184756$ \\
 \fonte{Fonte: elaborado pelo autor (benchmarks/results/2026-11-02\_22-02-21/h2-h3-tests.csv). Amostra HTTP/2 contra HTTP/3, n = 10. p bilateral exato. Sem correção entre condições.}
 \end{table}
 
-Na matriz ideal, o p95 e a taxa se separam ao nível de 0,05 em /bench/ping com 10 clientes, no GET de 100 KB, no GET de 1 MB e no POST /bench/echo. Em /bench/ping com 50 e 100 clientes e no GET de 1 KB, os quatro p ficam acima de 0,05. No GET de 1 MB, o p95 de HTTP/2 ficou abaixo do de HTTP/3 em todas as réplicas ($\delta = -1$) e a taxa ficou acima em todas ($\delta = 1$), com p exato de $2/184756$. As medianas são 55,4 ms e 556 req/s para HTTP/2, e 203,5 ms e 292 req/s para HTTP/3. HTTP/1.1, na mesma célula, registra 69,1 ms e 984 req/s. No POST /bench/echo o sinal inverte: o p95 de HTTP/2 fica acima do de HTTP/3 ($\delta = 0{,}94$, p = $0{,}000076$) e a taxa de HTTP/2 fica abaixo em todas as réplicas ($\delta = -1$, p = $2/184756$). As medianas são 88,9 ms e 480 req/s para HTTP/2, 71,6 ms e 1215 req/s para HTTP/3, e 115,3 ms e 482 req/s para HTTP/1.1.
+Na matriz ideal, o p95 e a taxa se separam ao nível de 0,05 em /bench/ping com 10 clientes, no GET de 100 KB, no GET de 1 MB e no POST /bench/echo. Em /bench/ping com 50 e 100 clientes e no GET de 1 KB, os quatro p ficam acima de 0,05. Isso vale para a campanha 2026-11-02\_22-02-21. A Seção~\ref{sec:ping-saturacao} repete o ping com a API compilada. No GET de 1 MB, o p95 de HTTP/2 ficou abaixo do de HTTP/3 em todas as réplicas ($\delta = -1$) e a taxa ficou acima em todas ($\delta = 1$), com p exato de $2/184756$. As medianas são 55,4 ms e 556 req/s para HTTP/2, e 203,5 ms e 292 req/s para HTTP/3. HTTP/1.1, na mesma célula, registra 69,1 ms e 984 req/s. No POST /bench/echo o sinal inverte: o p95 de HTTP/2 fica acima do de HTTP/3 ($\delta = 0{,}94$, p = $0{,}000076$) e a taxa de HTTP/2 fica abaixo em todas as réplicas ($\delta = -1$, p = $2/184756$). As medianas são 88,9 ms e 480 req/s para HTTP/2, 71,6 ms e 1215 req/s para HTTP/3, e 115,3 ms e 482 req/s para HTTP/1.1.
 
 Na submatriz, o clean não separa as duas métricas (p = $0{,}971$ e p = $0{,}631$). Sob atraso de 100 ms, o p95 de HTTP/2 fica acima do de HTTP/3 ($\delta = 0{,}96$, p = $0{,}000043$), com medianas de 102,9 ms e 102,7 ms. A taxa, com empates, tem p = $0{,}192$, e a mediana é 494 req/s nos dois. Sob perda de 1\%, os p são $0{,}089$ e $0{,}315$. No perfil combinado, o p95 tem p = $0{,}247$ e a taxa tem $\delta = 0{,}60$ e p = $0{,}023$, com medianas de 481 req/s e 479 req/s.
 

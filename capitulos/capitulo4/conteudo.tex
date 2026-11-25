@@ -134,7 +134,7 @@ O ambiente de execução foi construído sobre Node.js (versão $\geq$ 18), exec
 \item modo campanha de benchmark (contêineres):  para medições com rede degradada, API e NGINX executam como contêineres na rede Docker bench (\breaktok{docker-compose.bench.yml}, \breaktok{infra/nginx/nginx.bench.conf}), com upstream api:3000. Essa topologia é necessária para aplicar tc netem de forma simétrica nos três protocolos (TCP e UDP), conforme a Seção~\ref{sec:rede-degradada-desenho}.
 \end{enumerate}
 
-As duas campanhas reportadas neste trabalho utilizaram exclusivamente o modo campanha. O modo \textit{host} permanece documentado no repositório para reprodução dos caminhos de protocolo fora do laboratório \textit{bench}.
+As campanhas reportadas neste trabalho utilizaram o modo campanha. As de 2 e 3 de novembro de 2026 subiram a API com \texttt{npx tsx src/server.ts} e \texttt{LOG\_LEVEL=info}. A campanha de ping de 25 de novembro de 2026 usa a imagem em que o tsc gera \breaktok{dist/server.js} e o processo é \breaktok{node dist/server.js}, com \texttt{LOG\_LEVEL=warn}. O modo \textit{host} permanece documentado no repositório. \texttt{npm run dev} continua executando a API com tsx.
 
 A Figura~\ref{fig:implantacao} mostra a topologia do modo campanha sobre a estação de trabalho. Os contêineres ficam na rede Docker \texttt{bench}, sub-rede 172.30.0.0/16, com IPs fixos para a API (172.30.0.10) e para o NGINX (172.30.0.20). O cliente h2load roda em um contêiner na mesma rede. Os dados de sistema operacional, versões e hardware estão na Seção~\ref{sec:protocolo-coleta}.
 
@@ -314,12 +314,13 @@ BENCH\_\allowbreak MAX\_\allowbreak BODY\_\allowbreak BYTES & 2097152 & Tamanho 
 METRICS\_\allowbreak FILE & (vazio) & Caminho para export NDJSON de métricas por requisição \\
 RATE\_\allowbreak LIMIT\_\allowbreak MAX & 100 & Limite de requisições por janela (desabilitado em BENCHMARK\_MODE) \\
 TRUST\_\allowbreak PROXY\_\allowbreak HOPS & 1 & Hops de proxy confiável (NGINX) \\
+LOG\_\allowbreak LEVEL & info & Nível do Pino. Em docker-compose.bench.yml, a campanha compilada usa warn \\
 \hline
 \end{tabular}
 \fonte{Fonte: elaborado pelo autor.}
 \end{table}
 
-O middleware requestMetrics registra, a cada requisição finalizada, método HTTP, caminho, protocolo, código de status, duração em milissegundos e bytes enviados. Os registros são emitidos via Pino (structured logging) com a mensagem metricas\_requisicao. Adicionalmente, o cabeçalho Server-Timing: app;dur=<ms> é injetado antes do envio dos cabeçalhos de resposta, permitindo separar o tempo de processamento da aplicação do tempo total de transporte. Esse middleware não tem arquivo de teste próprio (Seção~\ref{sec:estrategia-testes}).
+O middleware requestMetrics registra, a cada requisição finalizada, método HTTP, caminho, protocolo, código de status, duração em milissegundos e bytes enviados. Fora de BENCHMARK\_MODE, esse registro sai no Pino com a mensagem metricas\_requisicao, e o requestLogger emite ``requisição recebida'' e ``requisição concluída''. Com BENCHMARK\_MODE, o pino-http não registra a requisição, nem em erro, e metricas\_requisicao não é emitida. O cabeçalho Server-Timing: app;dur=<ms> continua a ser injetado antes do envio dos cabeçalhos de resposta. Esse middleware não tem arquivo de teste próprio (Seção~\ref{sec:estrategia-testes}).
 
 Quando configurada, a variável METRICS\_FILE habilita a gravação de cada métrica em formato NDJSON (Newline Delimited JSON), um registro por linha, para análise posterior no Capítulo~\ref{cap:resultados}.
 
