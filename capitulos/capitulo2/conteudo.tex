@@ -76,8 +76,7 @@ A avaliação comparativa de protocolos HTTP exige a definição clara de métri
 
 \begin{enumerate}[label=\alph*)]
 \item latência: intervalo entre o envio de uma requisição e o recebimento da resposta completa, do ponto de vista do cliente;
-\item tempo de resposta: duração total do ciclo requisição-resposta, incluindo o processamento no servidor. Como as ferramentas de carga medem ambos pela mesma grandeza (duração da requisição), latência e tempo de resposta são reportados juntos no Capítulo~\ref{cap:resultados}, distinguindo-se apenas do TTFB;
-\item time to First Byte (TTFB): tempo até o recebimento do primeiro byte da resposta, que reflete o estabelecimento de conexão (quando há) e o início do processamento, sem incluir a transferência do corpo;
+\item tempo de resposta: duração total do ciclo requisição-resposta, incluindo o processamento no servidor. Como as ferramentas de carga medem ambos pela mesma grandeza (duração da requisição), latência e tempo de resposta são reportados juntos no Capítulo~\ref{cap:resultados};
 \item taxa de transferência (throughput): volume de dados transferidos por unidade de tempo\allowbreak{};
 \item requisições por segundo: capacidade do sistema sob carga, medindo escalabilidade e estabilidade.
 \end{enumerate}
@@ -107,5 +106,5 @@ Implicação em Node.js & Suporte nativo (node:http) & Suporte nativo (node:http
 \fonte{Fonte: elaborado pelo autor a partir de (IYENGAR; THOMSON, 2021; BISHOP, 2022; NODE.JS, 2025)}
 \end{table}
 
-Para este TCC, a comparação experimental precisa levar em conta que HTTP/1.1 é medido diretamente na API, enquanto HTTP/2 e HTTP/3 compartilham terminação TLS no NGINX, assimetria que influencia a interpretação de latência e \textit{throughput}. A revisão rápida da literatura do Capítulo~\ref{cap:revisao} mapeia evidências empíricas sobre desempenho e migração; o estudo de caso dos Capítulos~\ref{cap:metodologia} e~\ref{cap:resultados} operacionaliza a estratégia de proxy e quantifica o comportamento observado em laboratório.
+Nas campanhas reportadas neste TCC, HTTP/1.1, HTTP/2 e HTTP/3 terminam no mesmo NGINX, e o mesmo h2load fala com https://nginx:8443. O salto do NGINX até a API é HTTP/1.1 nos três protocolos, e o QUIC fica na perna do cliente até o NGINX. A revisão rápida da literatura do Capítulo~\ref{cap:revisao} mapeia evidências empíricas sobre desempenho e migração; o estudo de caso dos Capítulos~\ref{cap:metodologia} e~\ref{cap:resultados} operacionaliza a estratégia de proxy e quantifica o comportamento observado em laboratório.
 

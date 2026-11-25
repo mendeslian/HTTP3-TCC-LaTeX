@@ -1,0 +1,41 @@
+% Diagrama de implantacao do modo campanha (Figura do capitulo 4).
+% Fontes: QUICBench-Node/docker-compose.bench.yml (portas, IPs fixos, rede bench
+% 172.30.0.0/16); capitulos/capitulo5/conteudo.tex (secao Protocolo de coleta:
+% Windows 11 Pro, Docker Desktop 29.4.2 com backend WSL2, Node.js v22.13.0);
+% benchmarks/netem/*.sh (tc netem no egress voltado ao cliente).
+\begin{tikzpicture}[
+  cont/.style={draw, rectangle, align=center, inner sep=3pt, font=\scriptsize, minimum width=3.05cm, minimum height=1.55cm},
+  zone/.style={draw, dashed, rounded corners=1.5mm},
+  port/.style={font=\scriptsize, inner sep=1.5pt, fill=white, align=center, text width=1.75cm},
+  arr/.style={-{Stealth[length=2mm]}, thick},
+  note/.style={draw, rounded corners=1mm, align=center, inner sep=3pt, font=\scriptsize, fill=white},
+  title/.style={font=\scriptsize\bfseries, inner sep=1pt, fill=white},
+]
+\linespread{1}\selectfont
+
+\node[cont] (cli) {quicbench-h2load\\:1.70.0\\(cliente, sem IP fixo)};
+\node[cont, right=1.95cm of cli] (ngx) {nginx:\\mainline-alpine\\\texttt{172.30.0.20}};
+\node[cont, right=1.95cm of ngx] (api) {node:20-alpine\\(API)\\\texttt{172.30.0.10}};
+
+\draw[arr] ([yshift=3.5mm]cli.east) -- node[port, above] {\texttt{8443/tcp}\\(h1, h2)} ([yshift=3.5mm]ngx.west);
+\draw[arr, dashed] ([yshift=-4.5mm]cli.east) -- node[port, below] {\texttt{8443/udp}\\(h3)} ([yshift=-4.5mm]ngx.west);
+\draw[arr] (ngx.east) -- node[port, above] {\texttt{:3000}\\HTTP/1.1} (api.west);
+
+\node[port, above=6mm of ngx, text width=3.3cm] (pubngx) {publicado no host:\\\texttt{8443/tcp}, \texttt{8443/udp}};
+\node[port, above=6mm of api, text width=3.1cm] (pubapi) {publicado no host:\\\texttt{3000/tcp}};
+
+\node[note, below=9mm of ngx, text width=5.6cm] (netem) {\texttt{tc netem} (\texttt{benchmarks/netem})\\tráfego de saída voltado ao cliente;\\salto NGINX$\leftrightarrow$API isento};
+\draw[arr, dashed] (netem.north) -- (ngx.south);
+
+\node[title, anchor=south west] (btitle) at ([yshift=2mm]pubngx.north -| cli.west) {Rede Docker \texttt{bench} (172.30.0.0/16)};
+
+\node[zone, fit=(cli)(ngx)(api)(pubngx)(pubapi)(netem)(btitle), inner sep=6pt] (bench) {};
+
+\node[title, anchor=south west] (wtitle) at ([yshift=1.5mm]bench.north west) {Docker Desktop (backend WSL2)};
+\node[zone, fit=(bench)(wtitle), inner sep=5pt] (wsl) {};
+
+\node[title, anchor=south west] (wintitle) at ([yshift=1.5mm]wsl.north west) {Estação Windows 11 Pro};
+\node[note, anchor=north west] (hw) at ([yshift=-2mm]wsl.south west) {Hardware: AMD Ryzen 5 5600, \textasciitilde 16 GB RAM, Node.js v22.13.0 no host};
+\node[zone, fit=(wsl)(wintitle)(hw), inner sep=5pt] (win) {};
+
+\end{tikzpicture}
