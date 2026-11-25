@@ -1,0 +1,59 @@
+% Diagrama C4 do modo campanha (Figura 2 do capitulo 4).
+% Fontes: capitulos/capitulo4/conteudo.tex, docker-compose.bench.yml,
+% infra/nginx/nginx.bench.conf, benchmarks/netem/*.sh, benchmarks/scripts/*,
+% src/app.ts e src/*.
+\begin{tikzpicture}[
+  box/.style={draw, rectangle, align=center, inner sep=2pt, font=\scriptsize, minimum width=2.6cm, minimum height=0.8cm},
+  cyl/.style={draw, cylinder, shape border rotate=90, aspect=0.3, align=center, inner sep=2pt, font=\scriptsize, minimum width=2.6cm, minimum height=1.0cm},
+  arr/.style={-{Stealth[length=2mm]}, thick},
+  lbl/.style={font=\tiny, inner sep=1pt, fill=white},
+]
+
+% ---------- Faixa 1: contexto ----------
+\node[font=\scriptsize\bfseries] at (0,0) {1. Contexto};
+\node[box, minimum width=3.0cm] (autor) at (-3.4,-1.2) {Autor\\(executa as campanhas)};
+\node[box, minimum width=4.2cm] (ambiente) at (2.6,-1.2) {Ambiente experimental\\(QUICBench-Node)};
+\draw[arr] (autor.east) -- node[lbl, above] {executa a campanha} (ambiente.west);
+\draw[arr] (ambiente.south west) ++(0.4,0) -- node[lbl, below] {lê os resultados} ++(-0.8,0);
+
+% ---------- Faixa 2: contêineres ----------
+\node[font=\scriptsize\bfseries] at (0,-2.8) {2. Contêineres};
+
+\node[box] (scripts) at (-5.2,-4.4) {scripts\\(\texttt{benchmarks/scripts})};
+\node[box] (h2load) at (-1.6,-4.4) {h2load\\(\texttt{quicbench-h2load})};
+\node[box] (nginx) at (2.0,-4.4) {NGINX\\(\texttt{:8443} TCP/UDP)};
+\node[box] (api) at (5.6,-4.4) {API\\(\texttt{node:http} \texttt{:3000})};
+\node[cyl] (resultados) at (-3.4,-6.4) {resultados\\(\texttt{benchmarks/results})};
+\node[box] (netem) at (2.0,-6.4) {netem\\(\texttt{benchmarks/netem})};
+
+\draw[arr] (scripts.east) -- (h2load.west);
+\draw[arr] (h2load.east) -- (nginx.west);
+\draw[arr] (nginx.east) -- (api.west);
+\draw[arr] (scripts.south) -- node[lbl, left] {grava JSON} (resultados.north);
+\draw[arr] (netem.north) -- (nginx.south);
+\draw[arr, rounded corners=1.5mm] (netem.east) |- (api.south);
+
+% ---------- Faixa 3: componentes da API ----------
+\node[font=\scriptsize\bfseries] at (0,-8.2) {3. Componentes da API (\texttt{src/})};
+\node[box, minimum width=2.1cm] (server) at (-5.5,-9.6) {\texttt{server.ts}};
+\node[box, minimum width=2.1cm] (app) at (-2.7,-9.6) {\texttt{app.ts}};
+\node[box, minimum width=2.7cm] (logger) at (0.3,-9.6) {\texttt{requestLogger},\\\texttt{requestMetrics}};
+\node[box, minimum width=2.4cm] (routes) at (3.3,-9.6) {\texttt{routes/index.ts}};
+\node[box, minimum width=2.0cm] (health) at (6.6,-8.85) {\texttt{health.ts}};
+\node[box, minimum width=2.0cm] (bench) at (6.6,-10.35) {\texttt{bench.ts}};
+\node[box, minimum width=2.1cm] (env) at (-5.5,-11.5) {\texttt{config/env.ts}};
+\node[box, minimum width=2.3cm] (err) at (-2.7,-11.5) {\texttt{notFound},\\\texttt{errorHandler}};
+\node[box, minimum width=2.7cm] (metrics) at (0.3,-11.5) {\texttt{metrics.service.ts}};
+\node[box, minimum width=2.6cm] (payload) at (3.3,-11.5) {\texttt{payload.service.ts}};
+
+\draw[arr] (server.east) -- (app.west);
+\draw[arr] (app.east) -- (logger.west);
+\draw[arr] (logger.east) -- (routes.west);
+\draw[arr, rounded corners=1.5mm] (routes.east) -- ++(0.4,0) -| (health.west);
+\draw[arr, rounded corners=1.5mm] (routes.east) -- ++(0.4,0) -| (bench.west);
+\draw[arr] (app.south) -- (err.north);
+\draw[arr] (server.south) -- (env.north);
+\draw[arr] (logger.south) -- (metrics.north);
+\draw[arr] (routes.south) -- (payload.north);
+
+\end{tikzpicture}

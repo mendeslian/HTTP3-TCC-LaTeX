@@ -25,12 +25,12 @@ O ambiente experimental foi delimitado a um cenário controlado de laboratório,
 \item estratégias de integração (QP4) - tornar reprodutível a arquitetura proxy + API REST.
 \end{enumerate}
 
-A Figura~\ref{fig:arquitetura-experimental} resume os três caminhos. HTTP/1.1, HTTP/2 e HTTP/3 terminam no NGINX na porta 8443, e o upstream até a API permanece HTTP/1.1.
+A Figura~\ref{fig:arquitetura-experimental} mostra o contexto, os contêineres e os componentes da API no modo campanha. HTTP/1.1, HTTP/2 e HTTP/3 terminam no NGINX na porta 8443, e o upstream até a API permanece HTTP/1.1.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{assets/figuras/image4.png}
-\caption{Arquitetura experimental: HTTP/1.1, HTTP/2 e HTTP/3 terminados no NGINX}\label{fig:arquitetura-experimental}
+\input{assets/figuras/c4-ambiente.tex}
+\caption{Diagrama C4 do modo campanha: contexto, contêineres e componentes da API}\label{fig:arquitetura-experimental}
 \fonte{Fonte: elaborado pelo autor.}
 \end{figure}
 
